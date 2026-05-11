@@ -1,0 +1,224 @@
+// ============================================================================
+// _checkbox.scss — SCheckBox (checkbox) and SCheckBox-as-RadioButton.
+//
+// Two sources of truth (CLAUDE.md "Visual fidelity workflow"):
+//
+// 1) Widget Reflector snapshot — screenshots/reflector/widgets-tab.widgetsnapshot
+//
+//    Check Box, at SStarshipGallery.cpp:1037–1040 (4 states in a HorizontalBox,
+//    each slot Padding(8)):
+//
+//      SCheckBox            size=[20,18]     ← hit-test outer (1 px h-padding)
+//        SHorizontalBox     size=[20,18]
+//          SOverlay         size=[18,18]     ← visual area
+//            SImage         size=[18,18]     ← background rounded box
+//            SImage         size=[18,18]     ← checkmark / indeterminate SVG
+//
+//    Radio Button, at SStarshipGallery.cpp:1046–1064 (HorizontalBox 223×32,
+//    5 radios + "3" label, RadioChoice initial = 3):
+//
+//      SHorizontalBox       size=[223,32]
+//        SCheckBox × 5      size=[21,16]     ← desired 24×16, compressed
+//          SHorizontalBox   size=[21,16]
+//            SOverlay       size=[16,16]
+//              SImage × 2   size=[16,16]     ← radio-off + radio-on / dot
+//        STextBlock         size=[21,16]     ← "3" label content 7×15
+//
+//    Pixel-measured from screenshots/UnrealInsights_Widgets_Disabled.png:
+//      ring outer  = full 16×16 SOverlay edge (verified by AA halo at x=427.5)
+//      dot         ~ 5×5 px centred (verified by strong-blue pixel cluster)
+//
+// 2) UE source — StarshipCoreStyle.cpp:1610–1638 (Checkbox) and 1763–1788
+//    (RadioButton):
+//
+//    BasicCheckBoxStyle (Style key "Checkbox"):
+//      Corner radius     3 px (CheckboxCornerRadius)
+//      Outline thickness 1 px
+//      BackgroundImage      RoundedBox(Input #0F0F0F,  outline Secondary #383838)
+//      BackgroundHovered    RoundedBox(Input,          outline Hover    #575757)
+//      BackgroundPressed    RoundedBox(Input,          outline Hover    #575757)
+//      UncheckedImage       NoResource
+//      CheckedImage         SVG /CheckBox/check,        Primary #0070E0
+//      CheckedHovered                                   PrimaryHover #0E86FF
+//      CheckedPressed                                   PrimaryPress #0050A0
+//      UndeterminedImage    SVG /CheckBox/indeterminate, Primary tints
+//      Foreground (all)     ForegroundHover #FFFFFF
+//
+//    BasicRadioButtonStyle (Style key "RadioButton"):
+//      Padding              FMargin(4)  → +4 px each side of 16×16 visual
+//      UncheckedImage       SVG /CheckBox/radio-off, tinted Dropdown   #383838
+//      UncheckedHovered                                  Hover         #575757
+//      CheckedImage         SVG /CheckBox/radio-on,  tinted Primary    #0070E0
+//      CheckedHovered                                  PrimaryHover    #0E86FF
+//      Foreground (all)     White #FFFFFF
+//
+//    Disabled rendering — verified pixel-perfect against UnrealInsights_Widgets_Disabled.png:
+//      Every brush layer (and text/icon foreground) draws at α=0.45 over the
+//      already-rendered output. Cumulative:
+//        Panel #242424 → +Input α0.45 = #1B1B1B
+//        #1B1B1B       → +Dropdown α0.45 = #282828
+//      No transitions on state changes — Slate flips brushes instantly.
+//      (The previously-suspected check-fade was a press → release frame
+//       transition, not an animation — memory note updated.)
+// ============================================================================
+
+@use "variables" as *;
+
+// Inline-SVG mark images. Mask-image consumes alpha only; the rendered colour
+// comes from background-color, so we can swap Primary tints without re-encoding.
+// 18 viewBox so the visual sits centred in the 18 px checkbox.
+$ss-svg-check:         "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 18'><path fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M4.5 9.5 L8 13 L13.5 5.5'/></svg>";
+$ss-svg-indeterminate: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 18'><line x1='4.5' y1='9' x2='13.5' y2='9' stroke='%23fff' stroke-width='2' stroke-linecap='round'/></svg>";
+
+// ----- SCheckBox ============================================================
+
+.ss-checkbox {
+  appearance: none;
+  -webkit-appearance: none;
+  margin: 0;
+  width: 18px;
+  height: 18px;
+  display: inline-block;
+  vertical-align: middle;
+  background: var(--ss-input);
+  border: 1px solid var(--ss-input-outline);
+  border-radius: 3px;
+  cursor: pointer;
+  position: relative;
+  flex-shrink: 0;
+
+  &:hover,
+  &:active {
+    border-color: var(--ss-hover);
+  }
+
+  &:focus-visible {
+    outline: none;
+    border-color: var(--ss-primary);
+  }
+
+  // Background fill stays Input across normal states. The checkmark layer
+  // appears/disappears instantly — no transition (memory: no_transitions).
+  &::after {
+    content: "";
+    position: absolute;
+    inset: -1px;                          // covers the 1 px border
+    background-color: var(--ss-primary);
+    -webkit-mask: url("#{$ss-svg-check}") center / 18px 18px no-repeat;
+            mask: url("#{$ss-svg-check}") center / 18px 18px no-repeat;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  &:checked::after { opacity: 1; }
+  &:checked:hover::after  { background-color: var(--ss-primary-hover); }
+  &:checked:active::after { background-color: var(--ss-primary-press); }
+
+  &:indeterminate::after {
+    opacity: 1;
+    -webkit-mask-image: url("#{$ss-svg-indeterminate}");
+            mask-image: url("#{$ss-svg-indeterminate}");
+  }
+  &:indeterminate:hover::after  { background-color: var(--ss-primary-hover); }
+  &:indeterminate:active::after { background-color: var(--ss-primary-press); }
+
+  // Disabled — every brush layer rendered at α=0.45 cumulative.
+  //   Panel #242424 + Input α0.45 box  = #1B1B1B
+  //   Panel + Input α0.45 + Primary α0.45 mark on Input box
+  &:disabled {
+    cursor: not-allowed;
+    background: rgba(15, 15, 15, 0.45);    // Input × 0.45 → composites to #1B
+    border-color: rgba(56, 56, 56, 0.45);  // InputOutline × 0.45 → ~ #2A
+  }
+  &:disabled::after {
+    background-color: rgba(0, 112, 224, 0.45);  // Primary × 0.45 mark
+  }
+}
+
+// ----- SCheckBox as Radio Button ============================================
+//
+// Pixel-measured visual: ring fills the full 16×16 SOverlay (1 px stroke at the
+// outer edge), dot is ~5×5 centred. Implementation: the input itself paints
+// the ring as a 1 px border with border-box sizing; the dot is a centred
+// pseudo-element.
+
+.ss-radio {
+  appearance: none;
+  -webkit-appearance: none;
+  margin: 0;
+  width: 16px;
+  height: 16px;
+  box-sizing: border-box;
+  display: inline-block;
+  vertical-align: middle;
+  background: transparent;
+  // Ring stroke 1.6 px — user-tuned weight matching UE's running editor.
+  // Tried 1 px (too thin), 1.5 px (still thin), 2 px (too thick).
+  border: 1.6px solid var(--ss-dropdown);
+  border-radius: 50%;
+  cursor: pointer;
+  position: relative;
+  flex-shrink: 0;
+
+  &:hover,
+  &:active {
+    border-color: var(--ss-hover);
+  }
+
+  &:focus-visible {
+    outline: none;
+    border-color: var(--ss-primary);
+  }
+
+  // Centred dot — 5 × 5 absolutely centred via translate(-50%,-50%).
+  // Matches the visible diameter of UE's /CheckBox/radio-on filled disc:
+  // pixel-measured blue cluster spans ~5 px at full coverage in UE's
+  // enabled-state PNG (between the 4 px that looked too small and the
+  // 6 px that looked too big in side-by-side review).
+  &::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 5px;
+    height: 5px;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background-color: var(--ss-primary);
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  &:checked        { border-color: var(--ss-primary); }
+  &:checked::after { opacity: 1; }
+
+  &:checked:hover  { border-color: var(--ss-primary-hover); }
+  &:checked:hover::after  { background-color: var(--ss-primary-hover); }
+  &:checked:active { border-color: var(--ss-primary-press); }
+  &:checked:active::after { background-color: var(--ss-primary-press); }
+
+  &:disabled {
+    cursor: not-allowed;
+    border-color: rgba(56, 56, 56, 0.45);   // Dropdown × 0.45
+  }
+  &:disabled:checked        { border-color: rgba(0, 112, 224, 0.45); }
+  &:disabled:checked::after { background-color: rgba(0, 112, 224, 0.45); }
+}
+
+// ----- Row helper -----------------------------------------------------------
+
+.ss-check-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 6px;
+  border-radius: var(--ss-radius);
+  cursor: pointer;
+  user-select: none;
+  color: var(--ss-foreground);
+
+  &:hover {
+    background: var(--ss-recessed);
+    color: var(--ss-foreground-hover);
+  }
+}

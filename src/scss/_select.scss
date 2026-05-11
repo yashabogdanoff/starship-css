@@ -1,0 +1,71 @@
+// ============================================================================
+// _select.scss — styled native <select>.
+//
+// Native dropdown list rendering is constrained by the OS — we can only
+// fully style the closed state. For a fully-custom dropdown (search,
+// keyboard nav), see future starship.js.
+//
+//   .ss-select                base (matches a button visually)
+//   .ss-select--simple        no chevron text, just an icon trigger
+//   .ss-select-wrap           wrapper to show our own chevron icon
+// ============================================================================
+
+@use "variables" as *;
+
+.ss-select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  display: inline-block;
+  min-width: 100px;
+  padding: 1.5px 28px 1.5px var(--ss-pad-x);
+  background: var(--ss-secondary);
+  color: var(--ss-foreground-hover);
+  border: 1px solid var(--ss-input);
+  border-radius: var(--ss-radius);
+  font: inherit;
+  font-size: var(--ss-font-size);
+  line-height: var(--ss-line);
+  cursor: pointer;
+  transition: background-color var(--ss-transition), border-color var(--ss-transition);
+
+  // Inline SVG chevron — encoded so this rule self-contains, no asset needed.
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><path fill='none' stroke='%23C0C0C0' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round' d='M4 6l4 4 4-4'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  background-size: 14px 14px;
+
+  &:hover {
+    background-color: var(--ss-hover);
+  }
+  &:focus-visible {
+    outline: none;
+    border-color: var(--ss-primary);
+    box-shadow: 0 0 0 1px var(--ss-primary);
+  }
+  &:disabled {
+    background-color: var(--ss-dropdown);
+    border-color: var(--ss-recessed);
+    color: var(--ss-foreground);
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+
+  // The dropdown list itself.
+  option {
+    background: var(--ss-dropdown);
+    color: var(--ss-foreground-hover);
+  }
+}
+
+// Simple inline select — no chevron, used inside dense toolbars.
+.ss-select--simple {
+  background-color: transparent;
+  border-color: transparent;
+  padding-left: 4px;
+
+  &:hover {
+    background-color: var(--ss-dropdown);
+    border-color: transparent;
+  }
+}

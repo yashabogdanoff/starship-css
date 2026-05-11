@@ -1,0 +1,434 @@
+// ============================================================================
+// _toolbar.scss — Slim Toolbar (FSlimHorizontalToolBarBuilder).
+//
+// Slate spec (StarshipCoreStyle.cpp:2309-2410, "SlimToolBar"):
+//
+//   Background          : FStyleColors::Panel (#242424)
+//   BackgroundPadding   : FMargin(4, 6)             → 6px TB, 4px LR
+//   ButtonPadding       : FMargin(4, 0)             → 4px LR margin per button
+//   ComboButtonPadding  : FMargin(0, 0)             → 0px margin around combos
+//   CheckBoxPadding     : FMargin(8, 0)             → 8px LR margin per toggle*
+//   SeparatorBrush      : FStyleColors::Recessed (#1A1A1A)
+//   SeparatorPadding    : FMargin(4, -5)            → 4px LR, separator extends 5px past inner row
+//   LabelPadding        : FMargin(4, 0, 0, 0)       → 4px gap icon→label
+//   IconSize            : Icon20x20
+//
+//   *CheckBoxPadding governs raw SCheckBox blocks; toolbar Toggle buttons go
+//   through `SToolBarButtonBlock::AddCheckBox` which uses ButtonPadding (4).
+//   Snapshot confirms: Toggle block is 87×28, same 4px LR margin as Button.
+//
+//   SlimToolBarButton   : inherits SimpleButton style (1424-1434)
+//     normal   bg none,       fg Foreground (#C0C0C0)
+//     hover    bg Dropdown 4r, fg ForegroundHover (#FFFFFF)
+//     pressed  bg Dropdown 4r, fg ForegroundHover
+//     padding  FMargin(8, 4, 8, 4) normal / (8, 5, 8, 3) pressed
+//
+//   SlimToolBarToggleButton : inherits ToggleButtonCheckbox (1661-1678)
+//     unchecked normal   bg none,            fg Foreground
+//     unchecked hover    bg Dropdown 4r,     fg ForegroundHover
+//     unchecked pressed  bg Dropdown 4r,     fg ForegroundHover
+//     checked   normal   bg Primary 4r,      fg ForegroundHover
+//     checked   hover    bg PrimaryHover 4r, fg ForegroundHover
+//     checked   pressed  bg Dropdown 4r,     fg ForegroundHover  (mouseup → unchecked)
+//     padding   FMargin(8, 4, 8, 4)
+//
+//   SlimToolBarComboButton : inherits SimpleComboButton + ContentPadding(8,4,8,4)
+//                            via SimpleButton; chevron-down Icon16x16 with
+//                            DownArrowPadding(1, 0, 2, 0).
+//
+//   Settings region (ToolbarSettingsRegion.* + SToolBarButtonBlock split):
+//     Left half  : SBorder around button. Brushes (cpp:725-746):
+//         neither hovered, !checked : NoBrush          (transparent)
+//         neither hovered, checked  : LeftToggle       (Primary, rounded 4 0 0 4)
+//         right hovered,   !checked : Left            (Dropdown bg + Header outline 1px, 4 0 0 4)
+//         right hovered,   checked  : LeftToggle       (Primary, 4 0 0 4)
+//         left hovered,    !checked : LeftHover        (Hover, 4 0 0 4)
+//         left hovered,    checked  : LeftToggleHover  (PrimaryHover, 4 0 0 4)
+//     Right half : SBorder around dropdown arrow. Brushes (cpp:748-764):
+//         neither hovered, !checked : NoBrush          (transparent)
+//         left hovered     OR
+//           left checked, !right-hover : Right         (Dropdown bg + Header outline, 0 4 4 0)
+//         right hovered              : RightHover      (Hover, 0 4 4 0)
+//     The two halves share zero internal gap (snapshot 77+16 = 93 = block width).
+//     The dropdown arrow uses ellipsis-vertical-narrow 6×20 (NOT chevron-down)
+//     via FComboButtonStyle.SetDownArrowImage().
+//
+// Reflector (widgets-tab.widgetsnapshot, SMultiBoxWidget 496×40 / 298×40):
+//
+//   Toolbar (496-wide, includes settings section):
+//     outer 496 × 40   (BackgroundPadding 4 LR + 6 TB → inner row 488 × 28)
+//     items in order, each height 28:
+//       Button block         85   (8 margin + 77 SButton: icon 20 + gap 4 + text 37 + 8/8 padding)
+//       Toggle block         87   (8 margin + 79 SCheckBox: icon 20 + gap 4 + text 39 + 8/8 padding)
+//       Dropdown combo       118  (0 margin + 118 button: icon 20 + gap 4 + text 59 + 1+16+2 chevron + 8/8 padding)
+//       Separator            10   (4+4 padding + 2 SSeparator @ height 38, extends 5px past inner row)
+//       Settings group #1    93   (77 SButton + 16 SettingsArrow, both with shared SBorder shells)
+//       Settings group #2    95   (79 SCheckBox + 16 SettingsArrow)
+//   Toolbar 2 (298-wide, no settings section): only Button + Toggle + Dropdown.
+// ============================================================================
+
+@use "variables" as *;
+
+// ----- Container -----------------------------------------------------------
+
+.ss-toolbar {
+  display: inline-flex;
+  align-items: center;
+  height: 40px;
+  padding: 6px 4px;                  // BackgroundPadding(4, 6) → 4 LR, 6 TB
+  background: var(--ss-panel);       // Panel #242424
+  box-sizing: border-box;
+}
+
+// ----- Common button surface ------------------------------------------------
+// Regular button (.ss-toolbar__btn) and combo trigger (.ss-toolbar__combo)
+// share most of their paint: 28-tall pill, 8/4 padding, Foreground text.
+// Toggle variant adds the Primary checked state.
+
+%ss-toolbar-button {
+  appearance: none;
+  -webkit-appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;                          // LabelPadding(4, 0, 0, 0) — icon→label
+  height: 28px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--ss-foreground);
+  font: inherit;
+  font-size: var(--ss-font-size);
+  cursor: pointer;
+  text-align: left;
+  box-sizing: border-box;
+}
+
+.ss-toolbar__btn {
+  @extend %ss-toolbar-button;
+  // SlimToolBarButton NormalPadding(8, 4, 8, 4). ButtonPadding(4, 0) is the
+  // toolbar-level slot gap → external CSS margin per block.
+  padding: 4px 8px;
+  margin: 0 4px;
+
+  &:hover {
+    background: var(--ss-dropdown);                       // SimpleButton hovered
+    color: var(--ss-foreground-hover);
+  }
+
+  // PressedPadding(8, 5, 8, 3) — top +1, bottom -1, content sinks 1 px on
+  // mouse-press. Only applies to the regular (non-toggle) button; the toggle
+  // variant uses ToggleButtonCheckbox which has a single SetPadding(8, 4, 8, 4)
+  // with no pressed override, so the toggle stays put when clicked.
+  &:not(.ss-toolbar__btn--toggle):active {
+    padding: 5px 8px 3px;
+    background: var(--ss-dropdown);
+    color: var(--ss-foreground-hover);
+  }
+}
+
+// Toggle button uses the same surface but flips Primary on aria-pressed=true.
+// Toolbar's toggle is an SCheckBox with ESlateCheckBoxType::ToggleButton; the
+// "checked" state on the web is mirrored via the [aria-pressed] convention.
+.ss-toolbar__btn--toggle {
+  &[aria-pressed="true"] {
+    background: var(--ss-primary);                        // ToggleButton Checked
+    color: var(--ss-foreground-hover);
+
+    &:hover {
+      background: var(--ss-primary-hover);                // CheckedHovered
+    }
+  }
+}
+
+// Combo trigger (Dropdown). Same paint stack as .ss-toolbar__btn, but with
+// 0 outer margin (ComboButtonPadding(0, 0)) and an extra chevron child.
+// [aria-expanded="true"] mirrors Slate's "Pressed" brush while the menu is up.
+.ss-toolbar__combo {
+  @extend %ss-toolbar-button;
+  padding: 4px 8px;
+  margin: 0;
+
+  &:hover,
+  &[aria-expanded="true"] {
+    background: var(--ss-dropdown);
+    color: var(--ss-foreground-hover);
+  }
+
+  // Press sinks content 1 px (PressedPadding 8/5/8/3). Hover/expanded
+  // brush keeps painting — UE's combo doesn't flip to an idle "clicked"
+  // background during the press, only the SButton's pressed-padding kicks
+  // in (observed by the project owner in the live Starship Gallery).
+  &:active {
+    padding: 5px 8px 3px;
+  }
+}
+
+// ----- Slots --------------------------------------------------------------
+
+.ss-toolbar__icon {
+  width: 20px;                       // Icon20x20
+  height: 20px;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: inherit;
+
+  svg {
+    width: 20px;
+    height: 20px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+}
+
+.ss-toolbar__label {
+  white-space: nowrap;
+  line-height: 1;
+}
+
+// Chevron-down glyph, 16×16 with DownArrowPadding(1, 0, 2, 0). The 1 px left
+// margin and 2 px right margin together with the button's 8 px right padding
+// give 10 px from the chevron's centre to the button's outer right edge.
+.ss-toolbar__chevron {
+  width: 16px;
+  height: 16px;
+  margin-left: 1px;
+  margin-right: 2px;
+  flex-shrink: 0;
+  pointer-events: none;
+
+  background-color: currentColor;
+  --ss-tb-chevron: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='m6 9 6 6 6-6'/></svg>");
+  -webkit-mask-image: var(--ss-tb-chevron);
+          mask-image: var(--ss-tb-chevron);
+  -webkit-mask-size: contain;
+          mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+          mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+          mask-position: center;
+}
+
+// ----- Separator ----------------------------------------------------------
+// SSeparator 2 × 38 with SeparatorPadding(4, -5). The -5 px vertical padding
+// pushes the bar 5 px past the toolbar's inner row (28 tall) on each side, so
+// the bar is 38 tall and centred within the 40-tall toolbar. Background:
+// Recessed (#1A1A1A) — same colour as the gallery surface but a hairline
+// shows because the toolbar bg is Panel (#242424).
+
+.ss-toolbar__sep {
+  width: 2px;
+  height: 38px;
+  margin: 0 4px;                     // SeparatorPadding(4, _) — 4 LR. Vertical
+                                     // -5 already absorbed by height: 38 (28+5+5).
+  align-self: center;
+  flex-shrink: 0;
+  background: var(--ss-recessed);
+}
+
+// ----- Settings region (split-button: button + ellipsis dropdown) ---------
+// Two SBorder shells live inside an SHorizontalBox; brush selection is
+// reactive (cpp:725-764). We model that with `:has()` selectors on the
+// wrapping `.ss-toolbar__split`:
+//
+//   idle (!hover, !pressed)         → both shells transparent
+//   hover left only                 → left = Hover,    right = Right (Dropdown + outline)
+//   hover right only                → left = Left,     right = RightHover
+//   pressed (toggle on), no hover   → left = Primary,  right = transparent
+//   pressed + hover left            → left = PrimaryHover, right = Right
+//   pressed + hover right           → left = Primary,  right = RightHover
+//
+// Outline uses `box-shadow: inset 0 0 0 1px Header` because CSS `border` would
+// shift content layout and `outline` doesn't track border-radius reliably.
+
+.ss-toolbar__split {
+  display: inline-flex;
+  align-items: stretch;
+  height: 28px;
+  flex-shrink: 0;
+}
+
+.ss-toolbar__split-btn,
+.ss-toolbar__split-options {
+  appearance: none;
+  -webkit-appearance: none;
+  display: inline-flex;
+  align-items: center;
+  border: 0;
+  background: transparent;
+  color: var(--ss-foreground);
+  font: inherit;
+  font-size: var(--ss-font-size);
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.ss-toolbar__split-btn {
+  // Same content padding as a regular toolbar button (8/4).
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 4px 0 0 4px;        // ToolbarSettingsRegion.Left corners
+  text-align: left;
+
+  // PressedPadding(8, 5, 8, 3) — same 1-px sink as .ss-toolbar__btn. The
+  // settings-region button is also a regular SButton inside the split's
+  // SBorder shell; its toggle variant has no pressed shift.
+  &:not(.ss-toolbar__split-btn--toggle):active {
+    padding: 5px 8px 3px;
+  }
+}
+
+.ss-toolbar__split-options {
+  // SettingsRegion combo: SButton 16×28, content HBox 8×20 = empty content
+  // slot + 6×20 ellipsis with DownArrowPadding(1, 0). Padding inside the
+  // SButton 4 LR / 4 TB, then 1 LR around the 6-wide glyph.
+  justify-content: center;
+  width: 16px;
+  padding: 4px;
+  border-radius: 0 4px 4px 0;        // ToolbarSettingsRegion.Right corners
+}
+
+// ----- Brush logic via :has() ---------------------------------------------
+
+// Left half — hover state on the button itself.
+.ss-toolbar__split-btn:hover {
+  background: var(--ss-hover);                            // LeftHover
+  color: var(--ss-foreground-hover);
+}
+.ss-toolbar__split-btn--toggle[aria-pressed="true"] {
+  background: var(--ss-primary);                          // LeftToggle
+  color: var(--ss-foreground-hover);
+
+  &:hover {
+    background: var(--ss-primary-hover);                  // LeftToggleHover
+  }
+}
+
+// Hovering the arrow reveals the LEFT half with the static "Left" brush
+// (Dropdown bg + Header outline, left-rounded). If the toggle is pressed,
+// it keeps Primary (LeftToggle), so we scope the override away from --toggle
+// in pressed state.
+.ss-toolbar__split:has(.ss-toolbar__split-options:hover) {
+  .ss-toolbar__split-btn:not(:hover) {
+    background: var(--ss-dropdown);
+    box-shadow: inset 0 0 0 1px var(--ss-header);
+    color: var(--ss-foreground);
+  }
+  .ss-toolbar__split-btn--toggle[aria-pressed="true"] {
+    // Pressed wins — keep Primary; drop the outline since the brush is
+    // LeftToggle (no outline in source).
+    background: var(--ss-primary);
+    box-shadow: none;
+    color: var(--ss-foreground-hover);
+  }
+}
+
+// Right half — own hover.
+.ss-toolbar__split-options:hover,
+.ss-toolbar__split-options[aria-expanded="true"] {
+  background: var(--ss-hover);                            // RightHover
+  color: var(--ss-foreground-hover);
+}
+
+// Press sinks the ellipsis 1 px down (PressedPadding 4/5/4/3). Hover /
+// expanded brushes stay applied — see .ss-toolbar__combo:active above for
+// the same Slate-mirroring rationale.
+.ss-toolbar__split-options:active {
+  padding: 5px 4px 3px;
+}
+
+// When the left half is hovered OR the toggle is pressed, the right half
+// shows its static "Right" brush (Dropdown bg + Header outline, right-rounded).
+.ss-toolbar__split:has(.ss-toolbar__split-btn:hover) .ss-toolbar__split-options:not(:hover):not([aria-expanded="true"]),
+.ss-toolbar__split:has(.ss-toolbar__split-btn--toggle[aria-pressed="true"]) .ss-toolbar__split-options:not(:hover):not([aria-expanded="true"]) {
+  background: var(--ss-dropdown);
+  box-shadow: inset 0 0 0 1px var(--ss-header);
+}
+
+// ----- Ellipsis-vertical glyph (6 × 20) -----------------------------------
+// Three filled dots stacked vertically, encoded inline so the framework
+// doesn't depend on Lucide / Tabler / any external icon set.
+
+.ss-toolbar__ellipsis {
+  width: 6px;
+  height: 20px;
+  flex-shrink: 0;
+  pointer-events: none;
+
+  background-color: currentColor;
+  --ss-tb-ellipsis: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 6 20'><circle cx='3' cy='3' r='1' fill='black'/><circle cx='3' cy='10' r='1' fill='black'/><circle cx='3' cy='17' r='1' fill='black'/></svg>");
+  -webkit-mask-image: var(--ss-tb-ellipsis);
+          mask-image: var(--ss-tb-ellipsis);
+  -webkit-mask-size: contain;
+          mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+          mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+          mask-position: center;
+}
+
+// ----- Disabled state ----------------------------------------------------
+// SlimToolBarButton.SetDisabledForeground(Foreground); the global α0.45
+// disabled-tint rule lands the foreground at ~rgba(192,192,192,0.45). We
+// match that exactly. Backgrounds stay at the Normal brush (transparent for
+// regular buttons and split halves; Primary for a pressed toggle's left half
+// — Slate doesn't recolour those when the action is disabled, only fades the
+// content via UI-wide opacity logic we don't replicate, so the bg keeps
+// solid Primary while the text fades).
+
+.ss-toolbar__btn:disabled,
+.ss-toolbar__btn[aria-disabled="true"],
+.ss-toolbar__combo:disabled,
+.ss-toolbar__combo[aria-disabled="true"],
+.ss-toolbar__split-btn:disabled,
+.ss-toolbar__split-btn[aria-disabled="true"],
+.ss-toolbar__split-options:disabled,
+.ss-toolbar__split-options[aria-disabled="true"] {
+  color: rgba(192, 192, 192, 0.45);
+  cursor: not-allowed;
+  background: transparent;
+  box-shadow: none;
+
+  &:hover {
+    background: transparent;
+    color: rgba(192, 192, 192, 0.45);
+    box-shadow: none;
+  }
+}
+
+// A disabled toggle that is also pressed (rare — gallery never sets this
+// initially, but the API allows it) keeps a faded Primary fill so the
+// "ON" state still reads.
+.ss-toolbar__btn--toggle[aria-pressed="true"]:disabled,
+.ss-toolbar__btn--toggle[aria-pressed="true"][aria-disabled="true"],
+.ss-toolbar__split-btn--toggle[aria-pressed="true"]:disabled,
+.ss-toolbar__split-btn--toggle[aria-pressed="true"][aria-disabled="true"] {
+  background: rgba(0, 112, 224, 0.45);
+  color: rgba(255, 255, 255, 0.45);
+
+  &:hover {
+    background: rgba(0, 112, 224, 0.45);
+    color: rgba(255, 255, 255, 0.45);
+  }
+}
+
+// Suppress :has() hover-reveal on a disabled split-button. The arrow's hover
+// would otherwise pull the disabled left half back to Dropdown + outline.
+.ss-toolbar__split:has(.ss-toolbar__split-btn:disabled),
+.ss-toolbar__split:has(.ss-toolbar__split-btn[aria-disabled="true"]) {
+  .ss-toolbar__split-options {
+    background: transparent;
+    box-shadow: none;
+  }
+}
+.ss-toolbar__split:has(.ss-toolbar__split-options:disabled),
+.ss-toolbar__split:has(.ss-toolbar__split-options[aria-disabled="true"]) {
+  .ss-toolbar__split-btn:not([aria-pressed="true"]) {
+    background: transparent;
+    box-shadow: none;
+  }
+}

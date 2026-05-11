@@ -1,0 +1,409 @@
+// ============================================================================
+// _inputs.scss
+//
+// Slate "Editable Text" family. Two visual modes:
+//
+//   .ss-input            = SEditableTextBox (NormalEditableTextBox style).
+//                          Bordered, RoundedBox(Input, r=InputFocusRadius=4,
+//                          InputOutline, 1) brush. Hover→Hover outline,
+//                          Focus→Primary outline, ReadOnly→Header bg.
+//                          Padding FMargin(8, 3, 8, 4) LTRB → CSS `3px 8px 4px`.
+//                          Reflector outer 496×23 (SStarshipGallery.cpp:1377).
+//
+//   .ss-input.ss-input--bare = SEditableText. Borderless, no bg, no padding.
+//                          Just the text widget itself. Reflector outer 357×14
+//                          (SStarshipGallery.cpp:1369). Source: StarshipCoreStyle.cpp:1305
+//                          FEditableTextStyle NormalEditableTextStyle.
+//
+// Other selectors in this partial:
+//   .ss-textarea            multi-line (Slate's SMultiLineEditableTextBox)
+//   .ss-input--inline       borderless, click-to-edit feel
+//   .ss-search              wraps an input with a search icon + clear button
+//   .ss-label               text label that pairs with controls
+//   .ss-field               wrapper for a label-control pair
+// ============================================================================
+
+@use "variables" as *;
+
+// ----- Base text input -----------------------------------------------------
+
+.ss-input,
+.ss-textarea {
+  display: inline-flex;
+  align-items: center;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  appearance: none;
+  -webkit-appearance: none;
+  background: var(--ss-input);
+  color: var(--ss-foreground);
+  border: 1px solid var(--ss-input-outline);
+  border-radius: var(--ss-radius);
+  padding: 3px 8px 4px;
+  font: inherit;
+  font-size: var(--ss-font-size);
+  line-height: 1;
+
+  &::placeholder {
+    // Hint text in Slate renders with the input's foreground at a low
+    // effective alpha — pixel-derived from UnrealInsights_Widgets.png:
+    // UE peak.r on hint ≈ 90 over Panel #242424 → solves to α ≈ 0.35.
+    // (Pure Foreground × 0.5 = peak 114 → too ink-heavy.)
+    color: var(--ss-foreground);
+    opacity: 0.35;
+  }
+
+  &:hover {
+    border-color: var(--ss-hover);
+  }
+
+  &:focus {
+    outline: none;
+    border-color: var(--ss-primary);
+    color: var(--ss-foreground-hover);
+  }
+
+  &:read-only {
+    background: var(--ss-header);
+    cursor: default;
+  }
+
+  // Slate's disabled rule: every brush layer is rendered at α=0.45 over the
+  // parent surface. Per-channel rgba(…, 0.45) — NOT a uniform opacity — so the
+  // composite math matches StarshipCoreStyle.cpp's per-brush draw order.
+  // See PROJECT_NOTES.md §16 "Disabled tint formula".
+  &:disabled {
+    background-color: rgba(15, 15, 15, 0.45);        // Input  × 0.45
+    border-color:     rgba(56, 56, 56, 0.45);        // InputOutline × 0.45
+    color:            rgba(192, 192, 192, 0.45);     // Foreground × 0.45
+    cursor: not-allowed;
+
+    &::placeholder {
+      // base ::placeholder opacity 0.35 cascades — compound alpha ≈ 0.158
+      // (matches UE disabled hint over Panel).
+      color: rgba(192, 192, 192, 0.45);
+    }
+  }
+
+  // Browser-supplied error invalidation (works with the :user-invalid selector
+  // that fires only after interaction, so unfilled inputs don't go red instantly).
+  &:user-invalid {
+    border-color: var(--ss-error);
+  }
+}
+
+// Single-line .ss-input only: lock the outer height to 23 px (Reflector
+// LocalSize for SEditableTextBox). NormalEditableTextBox padding FMargin(8,
+// 3, 8, 4) + 1 px outline + 13 px content row totals 24 on Chromium without
+// an explicit height because the UA's intrinsic <input> line-box adds 1 px
+// of leading. Multi-line .ss-textarea must NOT inherit this — it sets its
+// own min-height further down.
+.ss-input {
+  height: 23px;
+}
+
+// Bordered multi-line (SMultiLineEditableTextBox).
+// Same NormalEditableTextBoxStyle brushes as the single-line .ss-input
+// (StarshipCoreStyle.cpp:1318-1332): RoundedBox(Input, r=4, InputOutline 1px)
+// → Hover/Focus border swap, ReadOnly bg swap, Foreground text → White on
+// focus. Padding FMargin(8, 3, 8, 4) is inherited from the shared block.
+// min-height: 48px = SBox.MinDesiredHeight(48) (SStarshipGallery.cpp:1398).
+// line-height 15px = Slate's Roboto 10pt row metric. Slate's textbox has no
+// web-style resize grip — overflow scrolls instead, so resize: none.
+.ss-textarea {
+  display: block;
+  resize: none;
+  min-height: 48px;
+  line-height: 15px;
+}
+
+// ----- Multi-line bare (SMultiLineEditableText) ---------------------------
+// Borderless multi-line. SStarshipGallery.cpp:1382-1392 wraps the widget in
+// SBox.MinDesiredHeight(48).MinDesiredWidth(200). Reflector outer 496×48.
+//
+// Style is the same NormalEditableTextStyle as SEditableText (single-line
+// bare) — no bg, no border, no padding, no flip-to-white on focus.
+
+.ss-textarea--bare {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  resize: none;             // Slate's SMultiLineEditableText has no grip
+  min-height: 48px;
+  line-height: 15px;        // Slate metric (Roboto 10pt → 15 px line row)
+
+  &:hover {
+    background: transparent;
+    border: 0;
+  }
+  &:focus {
+    background: transparent;
+    border: 0;
+    color: var(--ss-foreground);  // NormalEditableTextStyle keeps Foreground
+    outline: none;
+  }
+  &:disabled {
+    background-color: transparent;
+    color: rgba(192, 192, 192, 0.45);
+    cursor: not-allowed;
+
+    &::placeholder {
+      color: rgba(192, 192, 192, 0.45);
+    }
+  }
+}
+
+// ----- Bare (SEditableText) ------------------------------------------------
+// Borderless single-line. No bg, no border, no padding — just the text.
+// Used for SEditableText (SStarshipGallery.cpp:1369). Reflector 357×14.
+//
+// Source: StarshipCoreStyle.cpp:1305 — `FEditableTextStyle NormalEditableTextStyle`
+// sets ONLY SelectionBackground / CompositionBackground / CaretImage. It does
+// NOT define ForegroundColor or FocusedForegroundColor, so the foreground stays
+// at the inherited Foreground (#C0C0C0) in every state — there is no
+// flip-to-white on focus the way `NormalEditableTextBox` (Commit 2) does.
+
+.ss-input--bare {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  height: 14px;
+  line-height: 14px;
+
+  &:hover {
+    background: transparent;
+    border: 0;
+  }
+  &:focus {
+    background: transparent;
+    border: 0;
+    // SEditableText keeps Foreground (#C0C0C0) on focus — override the
+    // base .ss-input flip-to-white. NormalEditableTextStyle
+    // (StarshipCoreStyle.cpp:1305) does not define FocusedForegroundColor.
+    color: var(--ss-foreground);
+    outline: none;
+  }
+  // SEditableText has no bg or border in any state — only the text foreground
+  // itself carries the disabled tint, which the inherited base :disabled rule
+  // (color rgba(192, 192, 192, 0.45)) already paints. Just undo the box bg.
+  &:disabled {
+    background-color: transparent;
+  }
+}
+
+// ----- Inline editable text (SInlineEditableTextBlock) ---------------------
+// StarshipCoreStyle.cpp:1358-1367 — idle paint is a plain STextBlock with
+// NormalText style; on user activation (double-click / F2 in Slate) the
+// widget swaps to a NormalEditableTextBox-styled editor inline.
+//
+// We model that with a single <span data-inline-edit> that becomes
+// contenteditable in edit mode — no paired hidden input, no DOM swap. The
+// starship.js helper (initInlineEditables) wires the dblclick / Enter / Esc
+// / blur transitions. Reflector idle 496×15; edit-mode adopts the bordered
+// editor box (496×23 like .ss-input).
+
+.ss-inline-edit {
+  display: block;
+  width: 100%;
+  height: 15px;
+  line-height: 15px;
+  cursor: text;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  color: var(--ss-foreground);
+  font: inherit;
+  font-size: var(--ss-font-size);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  &[aria-disabled="true"] {
+    color: rgba(192, 192, 192, 0.45);
+    cursor: default;
+  }
+
+  // Edit mode = NormalEditableTextBox brushes painted around the live span.
+  // Slate visually flips from 15-px text row to a 23-px boxed editor on
+  // dblclick; we mirror that height/padding shift here.
+  &[contenteditable="plaintext-only"],
+  &[contenteditable="true"] {
+    height: 23px;
+    line-height: 1;
+    padding: 3px 8px 4px;
+    background: var(--ss-input);
+    border: 1px solid var(--ss-primary);     // Focused border = Primary
+    border-radius: var(--ss-radius);
+    color: var(--ss-foreground-hover);       // FocusedForegroundColor = White
+    outline: none;
+    cursor: text;
+  }
+}
+
+// ----- Search box (SSearchBox) ---------------------------------------------
+// StarshipCoreStyle.cpp:1335-1356.
+//
+// SearchBox is a copy of NormalEditableTextBoxStyle with three deltas:
+//   1. BackgroundImage* brushes use FSlateRoundedBoxBrush(fill, outline, w)
+//      — the 3-arg ctor has no radius parameter and "rounds based on height"
+//      (SlateRoundedBoxBrush.h line 131), i.e. paints a pill (corner radius
+//      = height / 2). At 23 px tall that is 11.5 px corners. NormalEditable-
+//      TextBox by contrast uses an explicit r=4 ctor and stays rectangular.
+//   2. Normal outline is Secondary, not InputOutline (both happen to be
+//      #383838 so visually identical in idle).
+//   3. Glass + clear icons live left-aligned per LeftAlignGlassImageAndClear-
+//      Button(true). ImagePadding FMargin(4, 0, 0, 0). ImageSizeOverride 14.
+//
+// Reflector outer 496×23, inner SBox 471×23, SEditableText 459×15.
+
+.ss-search {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  width: 100%;
+
+  .ss-input {
+    // Glass at left = 4 (ImagePadding) + 14 (ImageSizeOverride) + 6 (gap to
+    // text) = 24 px reserved for the glass region.
+    // Clear at right = 4 (visual margin) + 18 (button hit-rect) + 6 = 28 px.
+    // Bump the inset by 4 px on each side so text/placeholder doesn't crash
+    // into the pill's curved corners.
+    padding: 3px 32px 4px 28px;
+    // Pill — Slate's 3-arg FSlateRoundedBoxBrush "rounds based on height".
+    // 9999 px lets the browser clamp to height / 2 at any size.
+    border-radius: 9999px;
+  }
+
+  // Suppress Chromium's native <input type="search"> cancel button — we
+  // paint our own .ss-search__clear that obeys Slate's visibility rules.
+  .ss-input::-webkit-search-cancel-button,
+  .ss-input::-webkit-search-decoration {
+    appearance: none;
+    -webkit-appearance: none;
+    display: none;
+  }
+
+  // Magnifying-glass — Lucide `search` painted via CSS mask. End-user markup
+  // is `<span class="ss-search__icon" aria-hidden="true"></span>` — no inner
+  // SVG, no sprite dependency.
+  &__icon {
+    position: absolute;
+    // UE source is FMargin(4, 0, 0, 0). With the pill bg (corner radius
+    // 11.5 px at the canonical 23 px height) a 4 px inset puts the glass
+    // partly under the rounded left cap — visually clipped. Tuck it 2
+    // pixels in so the whole 14×14 icon sits in the pill's flat body.
+    left: 6px;
+    // Optical-centring nudge: the magnifying-glass tail hangs below the
+    // lens, so true geometric centring makes the lens read 1 px low.
+    // Lift the icon 1 px up so the lens lines up with the x-height of
+    // the placeholder text.
+    top: calc(50% - 1px);
+    transform: translateY(-50%);
+    width: 14px;
+    height: 14px;
+    pointer-events: none;
+
+    background-color: var(--ss-foreground);
+    --ss-search-glass-svg: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='11' cy='11' r='8'/><path d='m21 21-4.3-4.3'/></svg>");
+    -webkit-mask-image: var(--ss-search-glass-svg);
+            mask-image: var(--ss-search-glass-svg);
+    -webkit-mask-size: contain;
+            mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+            mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+            mask-position: center;
+  }
+
+  // Clear button — visible only while the input has content. Pure-CSS
+  // visibility via :has(:not(:placeholder-shown)). Click behaviour wired
+  // by starship.js initSearchBoxes (clears value + refocuses input).
+  // Lucide `x` painted via CSS mask on a ::before pseudo so the parent
+  // <button>'s hover bg / focus ring still works independently of the X
+  // glyph paint.
+  &__clear {
+    position: absolute;
+    right: 4px;
+    top: 50%;
+    transform: translateY(-50%);
+    appearance: none;
+    background: transparent;
+    border: 0;
+    color: var(--ss-foreground);
+    width: 18px;
+    height: 18px;
+    border-radius: var(--ss-radius);
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+
+    &::before {
+      content: '';
+      width: 12px;
+      height: 12px;
+      background-color: currentColor;
+      --ss-clear-x-svg: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M18 6 6 18'/><path d='m6 6 12 12'/></svg>");
+      -webkit-mask-image: var(--ss-clear-x-svg);
+              mask-image: var(--ss-clear-x-svg);
+      -webkit-mask-size: contain;
+              mask-size: contain;
+      -webkit-mask-repeat: no-repeat;
+              mask-repeat: no-repeat;
+      -webkit-mask-position: center;
+              mask-position: center;
+    }
+
+    &:hover {
+      background: var(--ss-dropdown);
+      color: var(--ss-foreground-hover);
+    }
+  }
+
+  &:has(.ss-input:not(:placeholder-shown):not(:disabled)) &__clear {
+    display: inline-flex;
+  }
+
+  // When the row is disabled, the framework's :disabled rules tint the
+  // .ss-input itself; sync the glass icon's tint so it doesn't sit at full
+  // alpha next to a dimmed input. The clear button is hidden anyway via the
+  // :not(:disabled) clause above.
+  &:has(.ss-input:disabled) &__icon {
+    color: rgba(192, 192, 192, 0.45);
+  }
+}
+
+// .ss-numeric lives in _numeric.scss — Slate's SNumericEntryBox / SSpinBox
+//   family with drag/fill/no-spin modifiers.
+// .ss-slider lives in _slider.scss — snapshot-driven implementation.
+
+// ----- Label & field row ---------------------------------------------------
+
+.ss-label {
+  display: inline-block;
+  font-size: var(--ss-font-size-sm);
+  color: var(--ss-foreground);
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.ss-field {
+  display: grid;
+  grid-template-columns: minmax(120px, max-content) 1fr;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+
+  > .ss-label {
+    margin: 0;
+    text-transform: none;
+    letter-spacing: 0;
+    color: var(--ss-foreground);
+    font-size: var(--ss-font-size);
+    text-align: right;
+  }
+}

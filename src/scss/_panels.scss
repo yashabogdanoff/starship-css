@@ -1,0 +1,69 @@
+// ============================================================================
+// _panels.scss — surfaces.
+// ss-panel        — standard panel (#242424) on Background (#151515)
+// ss-panel--nested — recessed inner panel (#1A1A1A)
+// ss-panel--header — bg = Header (#2F2F2F), used for tab strips / row headers
+// ss-panel__title  — small uppercase tracked label as panel header
+// ss-panel__body   — content padding
+// ss-divider       — horizontal 1px line; ss-divider--vertical for vertical
+// ============================================================================
+
+@use "variables" as *;
+
+.ss-panel {
+  background: var(--ss-panel);
+  border: 1px solid var(--ss-window-border);
+  border-radius: var(--ss-radius);
+  padding: 12px;
+  color: var(--ss-foreground);
+}
+
+.ss-panel--nested {
+  background: var(--ss-recessed);
+}
+
+.ss-panel--header {
+  background: var(--ss-header);
+}
+
+.ss-panel--flush {
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+}
+
+.ss-panel__title {
+  display: block;
+  font-size: var(--ss-font-size-sm);
+  font-weight: var(--ss-weight-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ss-foreground-header);
+  margin: 0 0 8px;
+}
+
+.ss-panel__body {
+  // Empty by default; presence is purely structural for layouts that mix
+  // a fixed header with a scrollable body.
+}
+
+// ----- Divider --------------------------------------------------------------
+
+.ss-divider {
+  border: 0;
+  height: 1px;
+  background: var(--ss-white-25);
+  margin: 8px 0;
+}
+
+.ss-divider--strong {
+  background: var(--ss-window-border);
+}
+
+.ss-divider--vertical {
+  display: inline-block;
+  width: 1px;
+  height: 1em;
+  vertical-align: middle;
+  margin: 0 8px;
+}

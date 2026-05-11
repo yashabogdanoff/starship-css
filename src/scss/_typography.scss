@@ -1,0 +1,153 @@
+// ============================================================================
+// _typography.scss — heading hierarchy, paragraph, links, inline code, kbd.
+// Editor-style headings: small, uppercase, tracked. Body uses base 13px.
+// ============================================================================
+
+@use "variables" as *;
+
+// ----- Headings -------------------------------------------------------------
+// Slate's editor uses "section labels" much more than big blog headings.
+// h1 / h2 are the big-ones (rarely used, page titles).
+// h3+ become small-uppercase-tracked panel headers.
+
+h1, h2, h3, h4, h5, h6 {
+  margin: 0 0 8px;
+  font-family: var(--ss-font);
+  color: var(--ss-foreground-hover);
+  line-height: 1.2;
+}
+
+h1 {
+  font-size: var(--ss-font-size-xl);
+  font-weight: var(--ss-weight-bold);
+}
+
+h2 {
+  font-size: var(--ss-font-size-lg);
+  font-weight: var(--ss-weight-bold);
+}
+
+h3, h4, h5, h6 {
+  font-size: var(--ss-font-size-sm);
+  font-weight: var(--ss-weight-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ss-foreground-header);
+}
+
+// ----- Block flow -----------------------------------------------------------
+
+p {
+  margin: 0 0 8px;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--ss-white-25);
+  margin: 12px 0;
+}
+
+// ----- Inline ---------------------------------------------------------------
+
+a {
+  color: var(--ss-highlight);
+  text-decoration: none;
+  transition: color var(--ss-transition);
+
+  &:hover {
+    color: var(--ss-foreground-hover);
+    text-decoration: underline;
+  }
+  &:focus-visible {
+    outline: 2px solid var(--ss-primary);
+    outline-offset: 2px;
+    border-radius: var(--ss-radius);
+  }
+}
+
+small {
+  font-size: var(--ss-font-size-sm);
+}
+
+strong, b {
+  font-weight: var(--ss-weight-bold);
+  color: var(--ss-foreground-hover);
+}
+
+em, i {
+  font-style: italic;
+}
+
+mark {
+  background: var(--ss-warning);
+  color: var(--ss-foreground-inverted);
+  padding: 0 2px;
+  border-radius: var(--ss-radius);
+}
+
+// ----- Code & keys ---------------------------------------------------------
+
+code, samp {
+  font-family: ui-monospace, "Cascadia Code", "Fira Code", Consolas, monospace;
+  font-size: 0.92em;
+  color: var(--ss-foreground-hover);
+  background: var(--ss-input);
+  border: 1px solid var(--ss-input-outline);
+  border-radius: var(--ss-radius);
+  padding: 1px 5px;
+}
+
+pre {
+  margin: 0 0 8px;
+  padding: 12px;
+  background: var(--ss-input);
+  border: 1px solid var(--ss-input-outline);
+  border-radius: var(--ss-radius);
+  overflow-x: auto;
+  font-family: ui-monospace, "Cascadia Code", "Fira Code", Consolas, monospace;
+  font-size: var(--ss-font-size-sm);
+  color: var(--ss-foreground);
+  line-height: 1.5;
+}
+pre > code {
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  font-size: inherit;
+  color: inherit;
+}
+
+kbd {
+  font-family: ui-monospace, "Cascadia Code", "Fira Code", Consolas, monospace;
+  font-size: 0.85em;
+  color: var(--ss-foreground-hover);
+  background: var(--ss-dropdown);
+  border: 1px solid var(--ss-dropdown-outline);
+  border-bottom-width: 2px;
+  border-radius: var(--ss-radius);
+  padding: 0 5px;
+  min-width: 18px;
+  display: inline-block;
+  text-align: center;
+}
+
+// ----- Lists ---------------------------------------------------------------
+
+ul, ol {
+  margin: 0 0 8px;
+  padding-left: 20px;
+}
+li {
+  margin-bottom: 2px;
+}
+
+// ----- Quotes --------------------------------------------------------------
+
+blockquote {
+  margin: 0 0 8px;
+  padding: 4px 12px;
+  border-left: 2px solid var(--ss-primary);
+  color: var(--ss-foreground);
+  background: var(--ss-recessed);
+}

@@ -1,0 +1,9 @@
+/node_modules
+/notes
+/tmp
+/tools
+/CLAUDE.md
+.mcp.json
+.playwright-mcp.config.json
+/.playwright-mcp
+/.claude

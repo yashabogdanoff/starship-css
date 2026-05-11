@@ -1,0 +1,60 @@
+// ============================================================================
+// _reset.scss — minimal reset + body defaults.
+// Goals: neutralise browser defaults, install Slate body look, do nothing else.
+// ============================================================================
+
+@use "variables" as *;
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  -moz-tab-size: 4;
+  tab-size: 4;
+}
+
+body {
+  margin: 0;
+  background: var(--ss-background);
+  color: var(--ss-foreground);
+  font-family: var(--ss-font);
+  font-size: var(--ss-font-size);
+  font-weight: var(--ss-weight);
+  line-height: var(--ss-line);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+// Form controls: inherit page font (browsers default to system-ui).
+button, input, select, textarea {
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  color: inherit;
+}
+
+// Avoid double-tap zoom delay on touch devices.
+button {
+  touch-action: manipulation;
+}
+
+// Images / media: behave like blocks, never overflow.
+img, svg, video, canvas {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+// Default focus ring: no ugly browser outline; we render our own focus states
+// per component (using the Primary color and a subtle box-shadow).
+:focus {
+  outline: none;
+}
+:focus-visible {
+  outline: 2px solid var(--ss-primary);
+  outline-offset: 1px;
+}

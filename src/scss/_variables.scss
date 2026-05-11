@@ -1,0 +1,211 @@
+// ============================================================================
+// starship-css — design tokens
+//
+// Source of truth: UE 5.7.4 default Dark theme.
+// Hex values extracted byte-exact from
+//   Engine/Source/Runtime/SlateCore/Private/Styling/StyleColors.cpp
+// (lines 80–133, USlateThemeManager::InitalizeDefaults).
+//
+// Token names mirror Slate's EStyleColor enum where reasonable, so
+// cross-referencing UE source while writing components stays trivial.
+// ============================================================================
+
+
+// ----- Sass variables (compile-time use, e.g. inside component partials) ----
+
+// Surfaces — darkest → lightest
+$ss-black:               #000000;
+$ss-title:               #151515;
+$ss-background:          #151515;
+$ss-window-border:       #0F0F0F;
+$ss-foldout:             #0F0F0F;
+$ss-input:               #0F0F0F;   // input/textbox bg — yes, deeper than panel
+$ss-input-outline:       #383838;
+$ss-recessed:            #1A1A1A;
+$ss-panel:               #242424;
+$ss-header:              #2F2F2F;
+$ss-dropdown:            #383838;
+$ss-dropdown-outline:    #4C4C4C;
+$ss-hover:               #575757;
+$ss-hover-2:             #808080;
+
+// Foreground — text & icons
+$ss-white:               #FFFFFF;
+$ss-white-25:            rgba(255, 255, 255, .25);  // dividers, faint outlines
+$ss-foreground:          #C0C0C0;   // default body text
+$ss-foreground-hover:    #FFFFFF;
+$ss-foreground-header:   #C8C8C8;   // panel header text
+$ss-foreground-inverted: #0F0F0F;   // text on bright bg
+$ss-highlight:           #0070E0;
+
+// Primary action (CTA buttons)
+$ss-primary:             #0070E0;
+$ss-primary-hover:       #0E86FF;
+$ss-primary-press:       #0050A0;
+$ss-secondary:           #383838;
+
+// Selection (lists / outliner)
+$ss-select:              #0070E0;
+$ss-select-inactive:     #40576F;
+$ss-select-parent:       #2C323A;
+$ss-select-hover:        #242424;
+
+// Notifications
+$ss-notifications:       #464B50;
+
+// Accents (for icons / category indicators — not for buttons)
+$ss-accent-blue:         #26BBFF;
+$ss-accent-purple:       #A139BF;
+$ss-accent-pink:         #FF729C;
+$ss-accent-red:          #FF4040;
+$ss-accent-orange:       #FE9B07;
+$ss-accent-yellow:       #FFDC1A;
+$ss-accent-green:        #8BC24A;
+$ss-accent-brown:        #804D39;
+$ss-accent-black:        #242424;
+$ss-accent-gray:         #808080;
+$ss-accent-white:        #FFFFFF;
+$ss-accent-folder:       #B68F55;
+
+// Status
+$ss-warning:             #FFB800;
+$ss-error:               #EF3535;
+$ss-success:             #1FE44B;
+
+// Typography
+// Prefer Roboto Flex (variable font) when available — its wght axis lets
+// us land between Google Fonts' static 400/500/600/700 to better match
+// UE Slate's bundled Roboto v2.x ink density. Falls back to static Roboto
+// if Flex isn't loaded, then to system fonts.
+$ss-font:                "Roboto", "Segoe UI", system-ui, sans-serif;
+$ss-font-size-sm:        11px;   // Roboto 8pt Slate
+$ss-font-size:           13px;   // Roboto 10pt Slate — base
+$ss-font-size-lg:        15px;   // Roboto 11pt Slate
+$ss-font-size-xl:        19px;   // Roboto 14pt Slate
+$ss-line:                1.4;
+$ss-weight:              400;
+$ss-weight-bold:         700;
+
+// Geometry & motion
+// Slate default radius is 4px (used in 27 of the 41 FSlateRoundedBoxBrush calls
+// across StarshipCoreStyle.cpp). Smaller radii (2px) are used for badges and
+// inline elements; bigger (5px) for special tabs.
+$ss-radius:              4px;
+$ss-radius-sm:           2px;
+$ss-border-w:            1px;
+$ss-pad-x:               12px;
+$ss-pad-y:               4px;
+$ss-transition:          100ms ease-out;
+
+
+// ----- CSS custom properties (public API — users may override at runtime) ---
+
+:root {
+  // Surfaces
+  --ss-black:               #{$ss-black};
+  --ss-title:               #{$ss-title};
+  --ss-background:          #{$ss-background};
+  --ss-window-border:       #{$ss-window-border};
+  --ss-foldout:             #{$ss-foldout};
+  --ss-input:               #{$ss-input};
+  --ss-input-outline:       #{$ss-input-outline};
+  --ss-recessed:            #{$ss-recessed};
+  --ss-panel:               #{$ss-panel};
+  --ss-header:              #{$ss-header};
+  --ss-dropdown:            #{$ss-dropdown};
+  --ss-dropdown-outline:    #{$ss-dropdown-outline};
+  --ss-hover:               #{$ss-hover};
+  --ss-hover-2:             #{$ss-hover-2};
+
+  // Foreground
+  --ss-white:               #{$ss-white};
+  --ss-white-25:            #{$ss-white-25};
+  --ss-foreground:          #{$ss-foreground};
+  --ss-foreground-hover:    #{$ss-foreground-hover};
+  --ss-foreground-header:   #{$ss-foreground-header};
+  --ss-foreground-inverted: #{$ss-foreground-inverted};
+  --ss-highlight:           #{$ss-highlight};
+
+  // Primary
+  --ss-primary:             #{$ss-primary};
+  --ss-primary-hover:       #{$ss-primary-hover};
+  --ss-primary-press:       #{$ss-primary-press};
+  --ss-secondary:           #{$ss-secondary};
+
+  // Selection
+  --ss-select:              #{$ss-select};
+  --ss-select-inactive:     #{$ss-select-inactive};
+  --ss-select-parent:       #{$ss-select-parent};
+  --ss-select-hover:        #{$ss-select-hover};
+
+  // Notifications
+  --ss-notifications:       #{$ss-notifications};
+
+  // Accents
+  --ss-accent-blue:         #{$ss-accent-blue};
+  --ss-accent-purple:       #{$ss-accent-purple};
+  --ss-accent-pink:         #{$ss-accent-pink};
+  --ss-accent-red:          #{$ss-accent-red};
+  --ss-accent-orange:       #{$ss-accent-orange};
+  --ss-accent-yellow:       #{$ss-accent-yellow};
+  --ss-accent-green:        #{$ss-accent-green};
+  --ss-accent-brown:        #{$ss-accent-brown};
+  --ss-accent-black:        #{$ss-accent-black};
+  --ss-accent-gray:         #{$ss-accent-gray};
+  --ss-accent-white:        #{$ss-accent-white};
+  --ss-accent-folder:       #{$ss-accent-folder};
+
+  // Status
+  --ss-warning:             #{$ss-warning};
+  --ss-error:               #{$ss-error};
+  --ss-success:             #{$ss-success};
+
+  // Typography
+  --ss-font:                #{$ss-font};
+  --ss-font-size-sm:        #{$ss-font-size-sm};
+  --ss-font-size:           #{$ss-font-size};
+  --ss-font-size-lg:        #{$ss-font-size-lg};
+  --ss-font-size-xl:        #{$ss-font-size-xl};
+  --ss-line:                #{$ss-line};
+  --ss-weight:              #{$ss-weight};
+  --ss-weight-bold:         #{$ss-weight-bold};
+
+  // Geometry & motion
+  --ss-radius:              #{$ss-radius};
+  --ss-radius-sm:           #{$ss-radius-sm};
+  --ss-border-w:            #{$ss-border-w};
+  --ss-pad-x:               #{$ss-pad-x};
+  --ss-pad-y:               #{$ss-pad-y};
+  --ss-transition:          #{$ss-transition};
+}
+
+// ----- Cross-OS font-weight compensation ------------------------------------
+// Slate bundles its own FreeType — even on Windows. Web browsers, in contrast,
+// route Roboto through whatever the host OS provides, and the rendering
+// engines paint Roboto at noticeably different ink densities:
+//
+//     Engine                            Ink (Roboto Regular 13 px)
+//     UE Slate FreeType (target)        7.20%   ← reference
+//     Linux/WSL Chromium FreeType       8.36%   (close — no compensation)
+//     macOS Quartz / Core Text          ~8%     (close — no compensation yet)
+//     Windows Chrome DirectWrite + CT   9.39%   (+30% — needs lighter weight)
+//
+// `starship.js` (optional) tags <html> with ss-os-{win|mac|linux|…}, which
+// lets us override the canonical 400/700 design tokens with OS-appropriate
+// values *globally*. Every component that uses `var(--ss-weight)` or
+// `var(--ss-weight-bold)` — both inside the framework and in user CSS —
+// then gets the right weight automatically. No per-rule duplication.
+//
+// Numbers below are derived from pixel-measured ink coverage on the
+// Colors-tab "BASE COLORS" header against UnrealInsights_Colors.png:
+//   Windows weight 300 → 7.47% (within 0.3% of UE FreeType target).
+// Roboto 300/600 must be loaded by the consuming page (pages/gallery.html
+// imports wght@300;400;500;600;700) so these are exact glyphs, not
+// browser-synthesised faux-weights.
+:root.ss-os-win {
+  --ss-weight:               300;
+  --ss-weight-bold:          600;
+}
+// macOS Quartz lands between FreeType and DirectWrite; left at canonical
+// values pending a measurement on a real Mac browser. If over-inking is
+// reported on macOS we'd nudge to 350/650 here.

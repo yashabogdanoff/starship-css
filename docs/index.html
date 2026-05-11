@@ -1,0 +1,1195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>starship-css</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="dist/starship.css">
+  <link rel="stylesheet" href="./assets/gallery.css">
+
+  <!-- Optional: per-OS compensation for font-rendering differences.
+       Adds an ss-os-* class to <html> based on userAgent. ~0.5 KB. -->
+  <script src="dist/starship.js"></script>
+</head>
+<body>
+
+<!-- Gallery demo icons — Lucide (MIT, https://lucide.dev). These are
+     CONTENT icons used by the gallery's Toggle Button / SegmentedControl /
+     Menu Entry samples to illustrate "what a 3D primitive button might
+     look like". They are NOT part of the framework dist — end users
+     bring their own icon set (Lucide, Tabler, Iconoir, hand-rolled, …)
+     and reference them however their stack prefers.
+     Framework chrome icons (chevrons, search glass, clear X) live as
+     inline mask-image data URIs inside their widget partials, so
+     dist/starship.css ships with no external SVG dependency. -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="gallery-icon-box" viewBox="0 0 24 24">
+      <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/>
+      <path d="m3.3 7 8.7 5 8.7-5"/>
+      <path d="M12 22V12"/>
+    </symbol>
+    <symbol id="gallery-icon-cylinder" viewBox="0 0 24 24">
+      <ellipse cx="12" cy="5" rx="9" ry="3"/>
+      <path d="M3 5v14a9 3 0 0 0 18 0V5"/>
+    </symbol>
+    <symbol id="gallery-icon-pyramid" viewBox="0 0 24 24">
+      <path d="M2.5 16.88a1 1 0 0 1-.32-1.43l9-13.02a1 1 0 0 1 1.64 0l9 13.01a1 1 0 0 1-.32 1.44l-8.51 4.86a2 2 0 0 1-2 0Z"/>
+      <path d="M12 2v20"/>
+    </symbol>
+    <symbol id="gallery-icon-globe" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="10"/>
+      <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/>
+      <path d="M2 12h20"/>
+    </symbol>
+    <!-- Lucide `home` (MIT). -->
+    <symbol id="gallery-icon-home" viewBox="0 0 24 24">
+      <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+      <polyline points="9 22 9 12 15 12 15 22"/>
+    </symbol>
+    <!-- Lucide `gallery-thumbnails` (MIT). -->
+    <symbol id="gallery-icon-gallery" viewBox="0 0 24 24">
+      <rect width="18" height="14" x="3" y="3" rx="2"/>
+      <path d="M4 21h1"/>
+      <path d="M9 21h1"/>
+      <path d="M14 21h1"/>
+      <path d="M19 21h1"/>
+    </symbol>
+  </defs>
+</svg>
+
+<!-- ============================================================== Page tabs -->
+<!-- Two Major tabs: Home (placeholder) + Starship Gallery (the widget tour).
+     Home is first; Starship Gallery is the currently-active tab so the
+     gallery content is visible by default. -->
+<div class="ss-tabs">
+  <input class="ss-tabs__input" type="radio" name="ss-app" id="ss-app-home">
+  <input class="ss-tabs__input" type="radio" name="ss-app" id="ss-app-gallery" checked>
+
+  <div class="ss-tab-well">
+    <label for="ss-app-home" class="ss-tab">
+      <span class="ss-tab__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gallery-icon-home"/></svg></span>
+      <span class="ss-tab__label">Home</span>
+      <button class="ss-tab__close" type="button" aria-label="Close"></button>
+    </label>
+    <label for="ss-app-gallery" class="ss-tab">
+      <span class="ss-tab__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gallery-icon-gallery"/></svg></span>
+      <span class="ss-tab__label">Starship Gallery</span>
+      <button class="ss-tab__close" type="button" aria-label="Close"></button>
+    </label>
+  </div>
+
+  <section class="ss-tab-panel">
+    <div class="gallery-content">
+      <div class="gallery-section">
+        <h2 class="gallery-section__title">Home</h2>
+        <div class="gallery-section__placeholder">
+          Landing page placeholder — content TBD.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="ss-tab-panel">
+    <!-- ====================================================== Minor tabs -->
+    <div class="ss-tabs">
+      <input class="ss-tabs__input" type="radio" name="ss-page" id="ss-page-colors" checked>
+      <input class="ss-tabs__input" type="radio" name="ss-page" id="ss-page-text">
+      <input class="ss-tabs__input" type="radio" name="ss-page" id="ss-page-icons">
+      <input class="ss-tabs__input" type="radio" name="ss-page" id="ss-page-widgets">
+      <input class="ss-tabs__input" type="radio" name="ss-page" id="ss-page-lists">
+
+      <div class="ss-tab-well">
+        <label for="ss-page-colors"  class="ss-tab ss-tab--minor">
+          <span class="ss-tab__label">Colors</span>
+          <button class="ss-tab__close" type="button" aria-label="Close"></button>
+        </label>
+        <label for="ss-page-text"    class="ss-tab ss-tab--minor">
+          <span class="ss-tab__label">Text</span>
+          <button class="ss-tab__close" type="button" aria-label="Close"></button>
+        </label>
+        <label for="ss-page-icons"   class="ss-tab ss-tab--minor">
+          <span class="ss-tab__label">Icons</span>
+          <button class="ss-tab__close" type="button" aria-label="Close"></button>
+        </label>
+        <label for="ss-page-widgets" class="ss-tab ss-tab--minor">
+          <span class="ss-tab__label">Starship Widgets</span>
+          <button class="ss-tab__close" type="button" aria-label="Close"></button>
+        </label>
+        <label for="ss-page-lists"   class="ss-tab ss-tab--minor">
+          <span class="ss-tab__label">List Widgets</span>
+          <button class="ss-tab__close" type="button" aria-label="Close"></button>
+        </label>
+      </div>
+
+  <!-- ============================================================ Colors tab -->
+  <!-- Order, names, Inverted (= dark text) and Outline flags follow
+       SStarshipGallery::ConstructColorsGallery() byte-for-byte. Newlines
+       in labels (e.g. "WINDOW\nBORDER") are preserved via white-space: pre-line. -->
+  <section class="ss-tab-panel ss-tab-panel--minor"><div class="gallery-content">
+
+    <div class="swatch-section">
+      <h2 class="swatch-section__title">BASE COLORS</h2>
+      <div class="swatch-grid">
+        <div class="swatch"                                style="background: var(--ss-black);">         <div class="swatch__name">BLACK</div>           <div class="swatch__hex">000000FF</div></div>
+        <div class="swatch"                                style="background: var(--ss-title);">         <div class="swatch__name">TITLE</div>           <div class="swatch__hex">151515FF</div></div>
+        <div class="swatch"                                style="background: var(--ss-window-border);"> <div class="swatch__name">WINDOW
+BORDER</div>  <div class="swatch__hex">0F0F0FFF</div></div>
+        <div class="swatch"                                style="background: var(--ss-foldout);">       <div class="swatch__name">FOLDOUT</div>         <div class="swatch__hex">0F0F0FFF</div></div>
+        <div class="swatch"                                style="background: var(--ss-input);">         <div class="swatch__name">INPUT</div>           <div class="swatch__hex">0F0F0FFF</div></div>
+        <div class="swatch"                                style="background: var(--ss-recessed);">      <div class="swatch__name">RECESSED</div>        <div class="swatch__hex">1A1A1AFF</div></div>
+        <div class="swatch swatch--outlined"               style="background: var(--ss-background);">    <div class="swatch__name">BACKGROUND</div>      <div class="swatch__hex">151515FF</div></div>
+        <div class="swatch"                                style="background: var(--ss-header);">        <div class="swatch__name">HEADER</div>          <div class="swatch__hex">2F2F2FFF</div></div>
+        <div class="swatch"                                style="background: var(--ss-dropdown);">      <div class="swatch__name">DROPDOWN</div>        <div class="swatch__hex">383838FF</div></div>
+        <div class="swatch"                                style="background: var(--ss-hover);">         <div class="swatch__name">HOVER</div>           <div class="swatch__hex">575757FF</div></div>
+        <div class="swatch"                                style="background: var(--ss-hover-2);">       <div class="swatch__name">HOVER2</div>          <div class="swatch__hex">808080FF</div></div>
+        <div class="swatch swatch--inverted"               style="background: var(--ss-white);">         <div class="swatch__name">WHITE</div>           <div class="swatch__hex">FFFFFFFF</div></div>
+        <div class="swatch"                                style="background: var(--ss-white-25);">      <div class="swatch__name">WHITE25</div>         <div class="swatch__hex">FFFFFF40</div></div>
+        <div class="swatch swatch--inverted"               style="background: var(--ss-primary);">       <div class="swatch__name">PRIMARY</div>         <div class="swatch__hex">0070E0FF</div></div>
+        <div class="swatch swatch--inverted"               style="background: var(--ss-primary-hover);"> <div class="swatch__name">PRIMARY
+HOVER</div>  <div class="swatch__hex">0E86FFFF</div></div>
+        <div class="swatch swatch--inverted"               style="background: var(--ss-primary-press);"> <div class="swatch__name">PRIMARY
+PRESS</div>  <div class="swatch__hex">0050A0FF</div></div>
+        <div class="swatch swatch--inverted"               style="background: var(--ss-secondary);">     <div class="swatch__name">SECONDARY</div>       <div class="swatch__hex">383838FF</div></div>
+      </div>
+    </div>
+
+    <div class="swatch-section">
+      <h2 class="swatch-section__title">FOREGROUND COLORS</h2>
+      <div class="swatch-grid">
+        <div class="swatch"                                style="background: var(--ss-foreground);">          <div class="swatch__name">FOREGROUND</div>      <div class="swatch__hex">C0C0C0FF</div></div>
+        <div class="swatch swatch--inverted"               style="background: var(--ss-foreground-hover);">    <div class="swatch__name">FOREGROUND
+HOVER</div>     <div class="swatch__hex">FFFFFFFF</div></div>
+        <div class="swatch"                                style="background: var(--ss-foreground-inverted);"> <div class="swatch__name">FOREGROUND
+INVERTED</div>  <div class="swatch__hex">0F0F0FFF</div></div>
+        <div class="swatch"                                style="background: var(--ss-highlight);">           <div class="swatch__name">HIGHLIGHT</div>       <div class="swatch__hex">0070E0FF</div></div>
+        <div class="swatch swatch--inverted"               style="background: var(--ss-foreground-header);">   <div class="swatch__name">FOREGROUND
+HEADER</div>    <div class="swatch__hex">C8C8C8FF</div></div>
+        <div class="swatch swatch--inverted"               style="background: var(--ss-select);">              <div class="swatch__name">SELECT</div>          <div class="swatch__hex">0070E0FF</div></div>
+        <div class="swatch"                                style="background: var(--ss-select-hover);">        <div class="swatch__name">SELECT
+HOVER</div>        <div class="swatch__hex">242424FF</div></div>
+        <div class="swatch"                                style="background: var(--ss-select-parent);">       <div class="swatch__name">SELECT
+PARENT</div>       <div class="swatch__hex">2C323AFF</div></div>
+        <div class="swatch"                                style="background: var(--ss-select-inactive);">     <div class="swatch__name">SELECT
+INACTIVE</div>     <div class="swatch__hex">40576FFF</div></div>
+      </div>
+    </div>
+
+    <div class="swatch-section">
+      <h2 class="swatch-section__title">ACCENT COLORS</h2>
+      <div class="swatch-grid">
+        <div class="swatch swatch--inverted"               style="background: var(--ss-accent-blue);">    <div class="swatch__name">BLUE</div>     <div class="swatch__hex">26BBFFFF</div></div>
+        <div class="swatch"                                style="background: var(--ss-accent-purple);">  <div class="swatch__name">PURPLE</div>   <div class="swatch__hex">A139BFFF</div></div>
+        <div class="swatch swatch--inverted"               style="background: var(--ss-accent-pink);">    <div class="swatch__name">PINK</div>     <div class="swatch__hex">FF729CFF</div></div>
+        <div class="swatch swatch--inverted"               style="background: var(--ss-accent-red);">     <div class="swatch__name">RED</div>      <div class="swatch__hex">FF4040FF</div></div>
+        <div class="swatch swatch--inverted"               style="background: var(--ss-accent-orange);">  <div class="swatch__name">ORANGE</div>   <div class="swatch__hex">FE9B07FF</div></div>
+        <div class="swatch swatch--inverted"               style="background: var(--ss-accent-yellow);">  <div class="swatch__name">YELLOW</div>   <div class="swatch__hex">FFDC1AFF</div></div>
+        <div class="swatch swatch--inverted"               style="background: var(--ss-accent-green);">   <div class="swatch__name">GREEN</div>    <div class="swatch__hex">8BC24AFF</div></div>
+        <div class="swatch"                                style="background: var(--ss-accent-brown);">   <div class="swatch__name">BROWN</div>    <div class="swatch__hex">804D39FF</div></div>
+        <div class="swatch"                                style="background: var(--ss-accent-folder);">  <div class="swatch__name">FOLDER</div>   <div class="swatch__hex">B68F55FF</div></div>
+        <div class="swatch swatch--outlined"               style="background: var(--ss-accent-black);">   <div class="swatch__name">BLACK</div>    <div class="swatch__hex">242424FF</div></div>
+        <div class="swatch"                                style="background: var(--ss-accent-gray);">    <div class="swatch__name">GRAY</div>     <div class="swatch__hex">808080FF</div></div>
+        <div class="swatch swatch--inverted"               style="background: var(--ss-accent-white);">   <div class="swatch__name">WHITE</div>    <div class="swatch__hex">FFFFFFFF</div></div>
+      </div>
+    </div>
+
+  </div></section>
+
+  <!-- ============================================================== Text tab -->
+  <!-- Order, font names, and \n\n paragraph breaks follow
+       SStarshipGallery::ConstructTextGallery() byte-for-byte. Three columns
+       wrap an SHorizontalBox: Regular (Normal + Small), Bold (Normal + Small),
+       Sub-typefaces (Math + Emoji). Large/ExtraLarge are commented out in the
+       source and are intentionally not shown here either. -->
+  <section class="ss-tab-panel ss-tab-panel--minor"><div class="gallery-content">
+    <div class="gallery-text-grid">
+
+      <!-- ===== Column 1 — Regular ===== -->
+      <div class="gallery-text-col">
+
+        <div class="gallery-text-section">
+          <div class="gallery-text-section__meta">ROBOTO 10 SLATE&nbsp;&nbsp;[ ROBOTO 13 FIGMA ]</div>
+          <div class="gallery-text-section__sample">Normal Text
+
+The quick brown fox jumps over the lazy dog.
+
+NORMAL TEXT CAPITAL</div>
+        </div>
+
+        <div class="gallery-text-section gallery-text-section--small">
+          <div class="gallery-text-section__meta">ROBOTO 8 SLATE&nbsp;&nbsp;[ ROBOTO 11 FIGMA ]</div>
+          <div class="gallery-text-section__sample">Small Text
+
+The quick brown fox jumps over the lazy dog.
+
+SMALL TEXT CAPITAL</div>
+        </div>
+
+      </div>
+
+      <!-- ===== Column 2 — Bold ===== -->
+      <div class="gallery-text-col">
+
+        <div class="gallery-text-section gallery-text-section--bold">
+          <div class="gallery-text-section__meta">ROBOTO BOLD 10 SLATE&nbsp;&nbsp;[ ROBOTO 13 FIGMA ]</div>
+          <div class="gallery-text-section__sample">Normal Text Bold
+
+The quick brown fox jumps over the lazy dog.
+
+NORMAL TEXT BOLD CAPITAL</div>
+        </div>
+
+        <div class="gallery-text-section gallery-text-section--small gallery-text-section--bold">
+          <div class="gallery-text-section__meta">ROBOTO BOLD 8 SLATE&nbsp;&nbsp;[ ROBOTO 11 FIGMA ]</div>
+          <div class="gallery-text-section__sample">Small Text Bold
+
+The quick brown fox jumps over the lazy dog.
+
+SMALL TEXT BOLD CAPITAL</div>
+        </div>
+
+      </div>
+
+      <!-- ===== Column 3 — Sub-typefaces (math + emoji) ===== -->
+      <div class="gallery-text-col">
+
+        <div class="gallery-text-section">
+          <div class="gallery-text-section__meta">SUB-TYPEFACES - MATH</div>
+          <div class="gallery-text-section__sample">Mathematical Alphanumeric Symbols, U+1D400 - U+1D7FF
+&#x1D400;&#x1D401;&#x1D402; &#x1D434;&#x1D435;&#x1D436; &#x1D4D0;&#x1D4D1;&#x1D4D2;</div>
+        </div>
+
+        <div class="gallery-text-section">
+          <div class="gallery-text-section__meta">SUB-TYPEFACES - EMOJI</div>
+          <div class="gallery-text-section__sample">Emoticons, U+1F600 - U+1F64F
+&#x1F60E;&#x1F643;&#x1F648;</div>
+          <div class="gallery-text-section__sample">Supplemental Symbols and Pictographs, U+1F900 - U+1F9FF
+&#x1F914;&#x1F916;&#x1F9F2;</div>
+        </div>
+
+      </div>
+
+    </div>
+  </div></section>
+
+  <!-- ============================================================= Icons tab -->
+  <section class="ss-tab-panel ss-tab-panel--minor"><div class="gallery-content">
+    <div class="gallery-section">
+      <h2 class="gallery-section__title">Icons</h2>
+      <div class="gallery-section__placeholder">
+        Icon library (Lucide / Tabler subset) lands in v0.1.0.
+      </div>
+    </div>
+  </div></section>
+
+  <!-- ================================================== Starship Widgets tab -->
+  <!-- Layout mirrors SStarshipGallery::ConstructWidgetGallery() byte-for-byte:
+       a single SGridPanel with two column-groups (left = rows 0–14, right =
+       rows 15–26). Each row = checkbox (toggles enabled state) + right-aligned
+       label + HBox with the widget samples. Padding values from the source:
+         cell 0 (checkbox): Padding(12)
+         cell 1 (label):    Padding(24, 16, 12, 16) HAlign_Right
+         cell 2 (widget):   Padding(12, 16, 12, 16) HAlign_Fill
+       Inter-sample gap pixel-measured at 25 px on UnrealInsights_Widgets.png.
+       Button rows: each row holds three samples — text-only / icon+text /
+       icon-only. Icons replicate UE's `Icons.box-perspective`,
+       `Icons.pyramid`, `Icons.cylinder` brushes via Lucide-style outlines
+       (we cannot redistribute Epic's SVG assets). Group 1 of the build-out
+       fills only the four button rows; the remaining 23 rows from the UE
+       gallery land in subsequent groups (Inputs, Selection, Combos, …). -->
+  <section class="ss-tab-panel ss-tab-panel--minor"><div class="gallery-content">
+    <div class="gallery-widgets">
+      <div class="gallery-widgets__col">
+
+        <!-- Row 1: Primary Button -->
+        <div class="gallery-widgets__row">
+          <div class="gallery-widgets__cb"><input class="ss-checkbox" type="checkbox" checked></div>
+          <div class="gallery-widgets__label">Primary Button</div>
+          <div class="gallery-widgets__samples">
+            <button class="ss-btn ss-btn--primary">Label</button>
+            <button class="ss-btn ss-btn--primary">
+              <span class="ss-btn__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#gallery-icon-box"/></svg></span>
+              Label
+            </button>
+            <button class="ss-btn ss-btn--primary ss-btn--icon-only" aria-label="Box">
+              <span class="ss-btn__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#gallery-icon-box"/></svg></span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Row 2: Default/Secondary Button -->
+        <div class="gallery-widgets__row">
+          <div class="gallery-widgets__cb"><input class="ss-checkbox" type="checkbox" checked></div>
+          <div class="gallery-widgets__label">Default/Secondary Button</div>
+          <div class="gallery-widgets__samples">
+            <button class="ss-btn">Label</button>
+            <button class="ss-btn">
+              <span class="ss-btn__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#gallery-icon-box"/></svg></span>
+              Label
+            </button>
+            <button class="ss-btn ss-btn--icon-only" aria-label="Box">
+              <span class="ss-btn__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#gallery-icon-box"/></svg></span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Row 3: Simple Button -->
+        <div class="gallery-widgets__row">
+          <div class="gallery-widgets__cb"><input class="ss-checkbox" type="checkbox" checked></div>
+          <div class="gallery-widgets__label">Simple Button</div>
+          <div class="gallery-widgets__samples">
+            <button class="ss-btn ss-btn--simple">Label</button>
+            <button class="ss-btn ss-btn--simple">
+              <span class="ss-btn__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#gallery-icon-box"/></svg></span>
+              Label
+            </button>
+            <button class="ss-btn ss-btn--simple ss-btn--icon-only" aria-label="Box">
+              <span class="ss-btn__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#gallery-icon-box"/></svg></span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Row 4: Toggle Button (gallery shows samples 1–2 toggled ON, 3 OFF) -->
+        <div class="gallery-widgets__row">
+          <div class="gallery-widgets__cb"><input class="ss-checkbox" type="checkbox" checked></div>
+          <div class="gallery-widgets__label">Toggle Button</div>
+          <div class="gallery-widgets__samples">
+            <button class="ss-btn ss-btn--toggle" aria-pressed="true">Label</button>
+            <button class="ss-btn ss-btn--toggle" aria-pressed="true">
+              <span class="ss-btn__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#gallery-icon-pyramid"/></svg></span>
+              Label
+            </button>
+            <button class="ss-btn ss-btn--toggle ss-btn--icon-only" aria-pressed="false" aria-label="Cylinder">
+              <span class="ss-btn__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#gallery-icon-cylinder"/></svg></span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Row 5: SegmentedControl (SStarshipGallery.cpp:994)
+             4 segments × 88×22, initial Value=0 → "Box" is checked.
+             Outer 357×24 from Reflector snapshot (widgets-tab @ line 994). -->
+        <div class="gallery-widgets__row">
+          <div class="gallery-widgets__cb"><input class="ss-checkbox" type="checkbox" checked></div>
+          <div class="gallery-widgets__label">SegmentedControl</div>
+          <div class="gallery-widgets__samples">
+            <div class="ss-segmented" role="radiogroup" aria-label="SegmentedControl">
+              <input id="seg1-box" type="radio" name="seg1" checked>
+              <label for="seg1-box" class="ss-segmented__option">
+                <span class="ss-segmented__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gallery-icon-box"/></svg></span>
+                Box
+              </label>
+              <input id="seg1-cyl" type="radio" name="seg1">
+              <label for="seg1-cyl" class="ss-segmented__option">
+                <span class="ss-segmented__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gallery-icon-cylinder"/></svg></span>
+                Cylinder
+              </label>
+              <input id="seg1-pyr" type="radio" name="seg1">
+              <label for="seg1-pyr" class="ss-segmented__option">
+                <span class="ss-segmented__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gallery-icon-pyramid"/></svg></span>
+                Pyramid
+              </label>
+              <input id="seg1-sph" type="radio" name="seg1">
+              <label for="seg1-sph" class="ss-segmented__option">
+                <span class="ss-segmented__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gallery-icon-globe"/></svg></span>
+                Sphere
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Row 6: SegmentedControl Alt (SStarshipGallery.cpp:1020)
+             4 icon-only segments × 32×22, initial Value=2 → "Pyramid" checked.
+             Outer 133×24 from Reflector. -->
+        <div class="gallery-widgets__row">
+          <div class="gallery-widgets__cb"><input class="ss-checkbox" type="checkbox" checked></div>
+          <div class="gallery-widgets__label">SegmentedControl Alt</div>
+          <div class="gallery-widgets__samples">
+            <div class="ss-segmented ss-segmented--alt" role="radiogroup" aria-label="SegmentedControl Alt">
+              <input id="seg2-box" type="radio" name="seg2">
+              <label for="seg2-box" class="ss-segmented__option" aria-label="Box">
+                <span class="ss-segmented__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gallery-icon-box"/></svg></span>
+              </label>
+              <input id="seg2-cyl" type="radio" name="seg2">
+              <label for="seg2-cyl" class="ss-segmented__option" aria-label="Cylinder">
+                <span class="ss-segmented__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gallery-icon-cylinder"/></svg></span>
+              </label>
+              <input id="seg2-pyr" type="radio" name="seg2" checked>
+              <label for="seg2-pyr" class="ss-segmented__option" aria-label="Pyramid">
+                <span class="ss-segmented__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gallery-icon-pyramid"/></svg></span>
+              </label>
+              <input id="seg2-sph" type="radio" name="seg2">
+              <label for="seg2-sph" class="ss-segmented__option" aria-label="Sphere">
+                <span class="ss-segmented__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gallery-icon-globe"/></svg></span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Row 7: Check Box (SStarshipGallery.cpp:1037–1040)
+             4 SCheckBox states inside a HorizontalBox, each in Padding(8.f):
+             [Unchecked, Unchecked, Checked, Undetermined]. Each visual 18×18. -->
+        <div class="gallery-widgets__row">
+          <div class="gallery-widgets__cb"><input class="ss-checkbox" type="checkbox" checked></div>
+          <div class="gallery-widgets__label">Check Box</div>
+          <div class="gallery-widgets__samples gallery-widgets__samples--checks">
+            <input class="ss-checkbox" type="checkbox" aria-label="cb 1">
+            <input class="ss-checkbox" type="checkbox" aria-label="cb 2">
+            <input class="ss-checkbox" type="checkbox" aria-label="cb 3" checked>
+            <input class="ss-checkbox" type="checkbox" aria-label="cb 4 indeterminate" data-indeterminate>
+          </div>
+        </div>
+
+        <!-- Row 8: Radio Button (SStarshipGallery.cpp:1046–1064)
+             5 SCheckBox with style "RadioButton" + STextBlock("3").
+             RadioChoice = 3, so 4th radio (index 3) is checked. -->
+        <div class="gallery-widgets__row">
+          <div class="gallery-widgets__cb"><input class="ss-checkbox" type="checkbox" checked></div>
+          <div class="gallery-widgets__label">Radio Button</div>
+          <div class="gallery-widgets__samples gallery-widgets__samples--radios">
+            <input class="ss-radio" type="radio" name="radio-grp" aria-label="0">
+            <input class="ss-radio" type="radio" name="radio-grp" aria-label="1">
+            <input class="ss-radio" type="radio" name="radio-grp" aria-label="2">
+            <input class="ss-radio" type="radio" name="radio-grp" aria-label="3" checked>
+            <input class="ss-radio" type="radio" name="radio-grp" aria-label="4">
+            <span class="gallery-widgets__radio-value" aria-live="polite">3</span>
+          </div>
+        </div>
+
+        <!-- Row 9: SimpleComboBox (SStarshipGallery.cpp:1076–1091)
+             SComboBox<TSharedPtr<FString>> with ComboBoxStyle "SimpleComboBox".
+             Trigger is icon-only (SImage Icons.box-perspective + chevron-down).
+             Reflector: outer 40×22, HBox content 36×20, icon 16, chevron 16. -->
+        <div class="gallery-widgets__row">
+          <div class="gallery-widgets__cb"><input class="ss-checkbox" type="checkbox" checked></div>
+          <div class="gallery-widgets__label">SimpleComboBox</div>
+          <div class="gallery-widgets__samples">
+            <div class="ss-combo ss-combo--simple">
+              <button class="ss-combo__trigger" type="button"
+                      data-combo-target="combo-simple-1"
+                      style="anchor-name: --combo-simple-1;"
+                      aria-haspopup="listbox" aria-label="SimpleComboBox">
+                <span class="ss-combo__icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#gallery-icon-box"/></svg>
+                </span>
+                <span class="ss-combo__chevron" aria-hidden="true"></span>
+              </button>
+              <div class="ss-combo__menu" popover="manual" id="combo-simple-1"
+                   role="listbox" aria-label="SimpleComboBox options"
+                   style="position-anchor: --combo-simple-1;">
+                <button class="ss-combo__option" role="option" type="button">Option A One</button>
+                <button class="ss-combo__option" role="option" type="button">Option A Two</button>
+                <button class="ss-combo__option" role="option" type="button">Option A Three</button>
+                <button class="ss-combo__option" role="option" type="button">Option A Four</button>
+                <button class="ss-combo__option" role="option" type="button">Option A Five</button>
+                <button class="ss-combo__option" role="option" type="button">Option A Six</button>
+                <button class="ss-combo__option" role="option" type="button">Option A Seven</button>
+                <button class="ss-combo__option" role="option" type="button">Option A Eight</button>
+                <button class="ss-combo__option" role="option" type="button">Option A Nine</button>
+                <button class="ss-combo__option" role="option" type="button">Option A Ten</button>
+                <button class="ss-combo__option" role="option" type="button">Option A Eleven</button>
+                <button class="ss-combo__option" role="option" type="button">Option A Twelve</button>
+                <button class="ss-combo__option" role="option" type="button">Option A Thirteen</button>
+                <button class="ss-combo__option" role="option" type="button">Option A Fourteen</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Row 10: ComboBox (SStarshipGallery.cpp:1094–1116)
+             Default ComboBoxStyle. Trigger has STextBlock "Label" + chevron-down.
+             Reflector: outer 67×22, HBox content 51×20, text 31×15, chevron 16. -->
+        <div class="gallery-widgets__row">
+          <div class="gallery-widgets__cb"><input class="ss-checkbox" type="checkbox" checked></div>
+          <div class="gallery-widgets__label">ComboBox</div>
+          <div class="gallery-widgets__samples">
+            <div class="ss-combo">
+              <button class="ss-combo__trigger" type="button"
+                      data-combo-target="combo-default-1"
+                      style="anchor-name: --combo-default-1;"
+                      aria-haspopup="listbox">
+                <span class="ss-combo__label">Label</span>
+                <span class="ss-combo__chevron" aria-hidden="true"></span>
+              </button>
+              <div class="ss-combo__menu" popover="manual" id="combo-default-1"
+                   role="listbox" aria-label="ComboBox options"
+                   style="position-anchor: --combo-default-1;">
+                <button class="ss-combo__option" role="option" type="button">Option A One</button>
+                <button class="ss-combo__option" role="option" type="button">Option A Two</button>
+                <button class="ss-combo__option" role="option" type="button">Option A Three</button>
+                <button class="ss-combo__option" role="option" type="button">Option A Four</button>
+                <button class="ss-combo__option" role="option" type="button">Option A Five</button>
+                <button class="ss-combo__option" role="option" type="button">Option A Six</button>
+                <button class="ss-combo__option" role="option" type="button">Option A Seven</button>
+                <button class="ss-combo__option" role="option" type="button">Option A Eight</button>
+                <button class="ss-combo__option" role="option" type="button">Option A Nine</button>
+                <button class="ss-combo__option" role="option" type="button">Option A Ten</button>
+                <button class="ss-combo__option" role="option" type="button">Option A Eleven</button>
+                <button class="ss-combo__option" role="option" type="button">Option A Twelve</button>
+                <button class="ss-combo__option" role="option" type="button">Option A Thirteen</button>
+                <button class="ss-combo__option" role="option" type="button">Option A Fourteen</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Row 11: SSlider (SStarshipGallery.cpp:1257–1276)
+             Horizontal Orient, Value=0.5. Reflector outer 357×8 = thumb
+             diameter; bar runs centred at 4 px tall (BarThickness=4). -->
+        <div class="gallery-widgets__row">
+          <div class="gallery-widgets__cb"><input class="ss-checkbox" type="checkbox" checked></div>
+          <div class="gallery-widgets__label">SSlider</div>
+          <div class="gallery-widgets__samples gallery-widgets__samples--fill">
+            <input class="ss-slider" type="range" min="0" max="1" step="0.001" value="0.5" aria-label="SSlider">
+          </div>
+        </div>
+
+        <!-- Row 12: SSpinBox (SStarshipGallery.cpp:1312–1327)
+             MinValue=0, MaxValue=500, MinSliderValue=-500, MaxSliderValue=500,
+             Value=123.0456789, Delta=0.5. Reflector outer 357×22; the fill
+             bar shows value's position between MinSliderValue and MaxSliderValue. -->
+        <div class="gallery-widgets__row">
+          <div class="gallery-widgets__cb"><input class="ss-checkbox" type="checkbox" checked></div>
+          <div class="gallery-widgets__label">SSpinBox</div>
+          <div class="gallery-widgets__samples gallery-widgets__samples--fill">
+            <div class="ss-numeric ss-numeric--filled"
+                 data-num-min="0" data-num-max="500"
+                 data-num-min-slider="-500" data-num-max-slider="500"
+                 data-num-value="123.0456789" data-num-delta="0.5">
+              <div class="ss-numeric__fill"></div>
+              <input class="ss-numeric__input" type="text" aria-label="SSpinBox value">
+            </div>
+          </div>
+        </div>
+
+        <!-- Row 13: SNumericEntryBox (SStarshipGallery.cpp:1329–1345)
+             AllowSpin=true. Style "NumericEntrySpinBox" is aliased to "SpinBox"
+             at StarshipCoreStyle.cpp:630, so visually identical to row 12 —
+             single CSS class .ss-numeric covers both. Differs only in data
+             attributes (MinValue=-1000, MaxValue=1000, Value=500). -->
+        <div class="gallery-widgets__row">
+          <div class="gallery-widgets__cb"><input class="ss-checkbox" type="checkbox" checked></div>
+          <div class="gallery-widgets__label">SNumericEntryBox</div>
+          <div class="gallery-widgets__samples gallery-widgets__samples--fill">
+            <div class="ss-numeric ss-numeric--filled"
+                 data-num-min="-1000" data-num-max="1000"
+                 data-num-min-slider="-500" data-num-max-slider="500"
+                 data-num-value="0" data-num-delta="0.5">
+              <div class="ss-numeric__fill"></div>
+              <input class="ss-numeric__input" type="text" aria-label="SNumericEntryBox value">
+            </div>
+          </div>
+        </div>
+
+        <!-- Row 14: SNumericEntryBox (No Spin) (SStarshipGallery.cpp:1347–1363)
+             AllowSpin defaults to false → no drag, no fill bar. Same .ss-numeric
+             family with .ss-numeric--no-spin modifier (vs row 13's --filled).
+             Reflector outer 357×23 (1 px taller than the spinning variants). -->
+        <div class="gallery-widgets__row">
+          <div class="gallery-widgets__cb"><input class="ss-checkbox" type="checkbox" checked></div>
+          <div class="gallery-widgets__label">SNumericEntryBox (No Spin)</div>
+          <div class="gallery-widgets__samples gallery-widgets__samples--fill">
+            <div class="ss-numeric ss-numeric--no-spin"
+                 data-num-min="-1000" data-num-max="1000"
+                 data-num-value="0">
+              <input class="ss-numeric__input" type="text" inputmode="decimal"
+                     aria-label="SNumericEntryBox (No Spin) value">
+            </div>
+          </div>
+        </div>
+
+        <!-- Row 15: SEditableText (SStarshipGallery.cpp:1365–1371)
+             Borderless single-line input. Reflector outer 357×14 — the height
+             is the rendered text line only, no border, no padding around it.
+             "This is editable text" in the source is the .HintText property
+             shown as placeholder when the input is empty.
+             SEditableText is the only Group 5 widget that lives in the LEFT
+             column (gallery's SGridPanel places it there); the remaining five
+             text widgets in Group 5 are wider (496 px) and land in the
+             RIGHT column. -->
+        <div class="gallery-widgets__row">
+          <div class="gallery-widgets__cb"><input class="ss-checkbox" type="checkbox" checked></div>
+          <div class="gallery-widgets__label">SEditableText</div>
+          <div class="gallery-widgets__samples gallery-widgets__samples--fill">
+            <input class="ss-input ss-input--bare" type="text"
+                   placeholder="This is editable text"
+                   aria-label="SEditableText">
+          </div>
+        </div>
+
+      </div><!-- /.gallery-widgets__col (left) -->
+
+      <div class="gallery-widgets__col">
+
+        <!-- Row 1 (right): SEditableTextBox (SStarshipGallery.cpp:1373–1379)
+             Bordered single-line input with the NormalEditableTextBox style.
+             RoundedBox(Input, r=4, InputOutline 1px) → Hover/Focus swap border
+             colour; ReadOnly swaps bg to Header. Padding FMargin(8, 3, 8, 4)
+             LTRB → CSS `3px 8px 4px`. Reflector outer 496×23. -->
+        <div class="gallery-widgets__row">
+          <div class="gallery-widgets__cb"><input class="ss-checkbox" type="checkbox" checked></div>
+          <div class="gallery-widgets__label">SEditableTextBox</div>
+          <div class="gallery-widgets__samples gallery-widgets__samples--w496">
+            <input class="ss-input" type="text"
+                   placeholder="This is an editable text box"
+                   aria-label="SEditableTextBox">
+          </div>
+        </div>
+
+        <!-- Row 2 (right): SMultiLineEditableText (SStarshipGallery.cpp:1382–1392)
+             Borderless multi-line text widget. SBox.MinDesiredHeight(48).
+             Reflector outer 496×48. Hint preserves the source string with
+             a newline and three tabs followed by " editable text". -->
+        <div class="gallery-widgets__row">
+          <div class="gallery-widgets__cb"><input class="ss-checkbox" type="checkbox" checked></div>
+          <div class="gallery-widgets__label">SMultiLineEditableText</div>
+          <div class="gallery-widgets__samples gallery-widgets__samples--w496">
+            <textarea class="ss-textarea ss-textarea--bare"
+                      placeholder="This is multi-line &#10;&#9;&#9;&#9; editable text"
+                      aria-label="SMultiLineEditableText"></textarea>
+          </div>
+        </div>
+
+        <!-- Row 3 (right): SMultiLineEditableTextBox (SStarshipGallery.cpp:1394–1404)
+             Bordered multi-line input with the NormalEditableTextBox style
+             (same brushes as SEditableTextBox). SBox.MinDesiredHeight(48).
+             Reflector outer 496×48. Slate paints a SScrollBar inside when
+             content overflows — webkit/firefox scrollbars rebranded in
+             _scrollbar.scss already approximate that. -->
+        <div class="gallery-widgets__row">
+          <div class="gallery-widgets__cb"><input class="ss-checkbox" type="checkbox" checked></div>
+          <div class="gallery-widgets__label">SMultiLineEditableTextBox</div>
+          <div class="gallery-widgets__samples gallery-widgets__samples--w496">
+            <textarea class="ss-textarea"
+                      placeholder="This is a multi-line editable text box"
+                      aria-label="SMultiLineEditableTextBox"></textarea>
+          </div>
+        </div>
+
+        <!-- Row 4 (right): SInlineEditableTextBlock (SStarshipGallery.cpp:1407–1413)
+             Idle = plain text. Double-click (or F2 / Enter when focused) flips
+             to an inline NormalEditableTextBox-styled editor on the same span.
+             Behaviour is wired by initInlineEditables in starship.js.
+             Reflector idle 496×15. -->
+        <div class="gallery-widgets__row">
+          <div class="gallery-widgets__cb"><input class="ss-checkbox" type="checkbox" checked></div>
+          <div class="gallery-widgets__label">SInlineEditableText</div>
+          <div class="gallery-widgets__samples gallery-widgets__samples--w496">
+            <span class="ss-inline-edit" data-inline-edit
+                  aria-label="SInlineEditableText">Inline Editable Text</span>
+          </div>
+        </div>
+
+        <!-- Row 5 (right): SSearchBox (SStarshipGallery.cpp:1416–1421)
+             SearchBox style (StarshipCoreStyle.cpp:1335-1356) — copy of
+             NormalEditableTextBox with the 3-arg FSlateRoundedBoxBrush
+             ctor that "rounds based on height" → pill shape (radius =
+             height/2). Glass icon inset, clear button visible while
+             field has content. Lucide search + X glyphs (MIT).
+             Reflector outer 496×23. -->
+        <div class="gallery-widgets__row">
+          <div class="gallery-widgets__cb"><input class="ss-checkbox" type="checkbox" checked></div>
+          <div class="gallery-widgets__label">SSearchBox</div>
+          <div class="gallery-widgets__samples gallery-widgets__samples--w496">
+            <div class="ss-search">
+              <span class="ss-search__icon" aria-hidden="true"></span>
+              <input class="ss-input" type="search" placeholder="Search"
+                     aria-label="SSearchBox">
+              <button class="ss-search__clear" type="button" aria-label="Clear"></button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Row 6 (right): SProgressBar (SStarshipGallery.cpp:1423–1429)
+             Determinate (Percent=.5). Style FProgressBarStyle from
+             StarshipCoreStyle.cpp:561-569 — bg Foldout, fill PrimaryHover
+             with the ProgressMarquee diagonal stripe pattern. -->
+        <div class="gallery-widgets__row">
+          <div class="gallery-widgets__cb"><input class="ss-checkbox" type="checkbox" checked></div>
+          <div class="gallery-widgets__label">SProgressBar</div>
+          <div class="gallery-widgets__samples gallery-widgets__samples--w496">
+            <div class="ss-progress" role="progressbar"
+                 aria-valuenow="50" aria-valuemin="0" aria-valuemax="100"
+                 aria-label="SProgressBar">
+              <div class="ss-progress__bar" style="width: 50%;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Row 7 (right): SProgressBar marquee (SStarshipGallery.cpp:1431–1436)
+             Indeterminate — same widget, no Percent value supplied. Slate
+             uses the MarqueeImage (same stripe tile) scrolling horizontally
+             across the whole track. -->
+        <div class="gallery-widgets__row">
+          <div class="gallery-widgets__cb"><input class="ss-checkbox" type="checkbox" checked></div>
+          <div class="gallery-widgets__label">SProgressBar marquee</div>
+          <div class="gallery-widgets__samples gallery-widgets__samples--w496">
+            <div class="ss-progress ss-progress--marquee" role="progressbar"
+                 aria-busy="true" aria-label="SProgressBar marquee"></div>
+          </div>
+        </div>
+
+        <!-- Row 8 (right): Menu Bar (SStarshipGallery.cpp:1448-1472)
+             FMenuBarBuilder + 2× AddPullDownMenu("Menu 1", "Menu 2") with
+             a shared NewMenuDelegate. The delegate builds 2 sections of
+             entries with icons and a recursive sub-menu (Sub Menu 1 calls
+             back into MakeMenuEntries). Strict UE parity — click-driven,
+             open/close routed through initMenus() in starship.js. -->
+        <div class="gallery-widgets__row">
+          <div class="gallery-widgets__cb"><input class="ss-checkbox" type="checkbox" checked></div>
+          <div class="gallery-widgets__label">Menu Bar</div>
+          <div class="gallery-widgets__samples gallery-widgets__samples--w496">
+            <nav class="ss-menubar" aria-label="Menu Bar">
+              <button class="ss-menubar__item" type="button"
+                      data-menu-target="gallery-menu-1"
+                      style="anchor-name: --gallery-menu-1;"
+                      aria-haspopup="menu" aria-expanded="false">Menu 1</button>
+              <button class="ss-menubar__item" type="button"
+                      data-menu-target="gallery-menu-2"
+                      style="anchor-name: --gallery-menu-2;"
+                      aria-haspopup="menu" aria-expanded="false">Menu 2</button>
+            </nav>
+          </div>
+        </div>
+
+        <!-- Row 9 (right): Toolbar (SStarshipGallery.cpp:1475-1478)
+             FSlimHorizontalToolBarBuilder built with bIncludeSettingsButtons=true:
+               Button + Toggle + Dropdown combo + separator + SettingsRegion(Button + ⋮) + SettingsRegion(Toggle + ⋮)
+             Reflector outer 496×40 (BackgroundPadding 4 LR + 6 TB → inner row 488×28).
+             Item widths from widgets-tab.widgetsnapshot:
+               85 + 87 + 118 + 10 + 93 + 95 = 488 ✓ -->
+        <div class="gallery-widgets__row">
+          <div class="gallery-widgets__cb"><input class="ss-checkbox" type="checkbox" checked></div>
+          <div class="gallery-widgets__label">Toolbar</div>
+          <div class="gallery-widgets__samples gallery-widgets__samples--w496">
+            <div class="ss-toolbar" role="toolbar" aria-label="Toolbar">
+              <button class="ss-toolbar__btn" type="button">
+                <span class="ss-toolbar__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gallery-icon-box"/></svg></span>
+                <span class="ss-toolbar__label">Button</span>
+              </button>
+              <button class="ss-toolbar__btn ss-toolbar__btn--toggle" type="button" aria-pressed="false">
+                <span class="ss-toolbar__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gallery-icon-box"/></svg></span>
+                <span class="ss-toolbar__label">Toggle</span>
+              </button>
+              <button class="ss-toolbar__combo" type="button"
+                      data-menu-target="tb1-dropdown"
+                      style="anchor-name: --tb1-dropdown;"
+                      aria-haspopup="menu" aria-expanded="false">
+                <span class="ss-toolbar__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gallery-icon-box"/></svg></span>
+                <span class="ss-toolbar__label">Dropdown</span>
+                <span class="ss-toolbar__chevron" aria-hidden="true"></span>
+              </button>
+              <div class="ss-toolbar__sep" aria-hidden="true"></div>
+              <div class="ss-toolbar__split">
+                <button class="ss-toolbar__split-btn" type="button">
+                  <span class="ss-toolbar__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gallery-icon-box"/></svg></span>
+                  <span class="ss-toolbar__label">Button</span>
+                </button>
+                <button class="ss-toolbar__split-options" type="button"
+                        data-menu-target="tb1-set1"
+                        style="anchor-name: --tb1-set1;"
+                        aria-haspopup="menu" aria-expanded="false" aria-label="Options">
+                  <span class="ss-toolbar__ellipsis" aria-hidden="true"></span>
+                </button>
+              </div>
+              <div class="ss-toolbar__split">
+                <button class="ss-toolbar__split-btn ss-toolbar__split-btn--toggle" type="button" aria-pressed="false">
+                  <span class="ss-toolbar__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gallery-icon-box"/></svg></span>
+                  <span class="ss-toolbar__label">Toggle</span>
+                </button>
+                <button class="ss-toolbar__split-options" type="button"
+                        data-menu-target="tb1-set2"
+                        style="anchor-name: --tb1-set2;"
+                        aria-haspopup="menu" aria-expanded="false" aria-label="Options">
+                  <span class="ss-toolbar__ellipsis" aria-hidden="true"></span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Row 10 (right): Toolbar 2 (SStarshipGallery.cpp:1480-1483)
+             Same FSlimHorizontalToolBarBuilder but bIncludeSettingsButtons=false,
+             so only the head section ships: Button + Toggle + Dropdown combo.
+             Same .ss-toolbar widget — no SCSS changes; this row is purely
+             a head-section showcase. Reflector outer 298×40. -->
+        <div class="gallery-widgets__row">
+          <div class="gallery-widgets__cb"><input class="ss-checkbox" type="checkbox" checked></div>
+          <div class="gallery-widgets__label">Toolbar 2</div>
+          <div class="gallery-widgets__samples gallery-widgets__samples--w496">
+            <div class="ss-toolbar" role="toolbar" aria-label="Toolbar 2">
+              <button class="ss-toolbar__btn" type="button">
+                <span class="ss-toolbar__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gallery-icon-box"/></svg></span>
+                <span class="ss-toolbar__label">Button</span>
+              </button>
+              <button class="ss-toolbar__btn ss-toolbar__btn--toggle" type="button" aria-pressed="false">
+                <span class="ss-toolbar__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gallery-icon-box"/></svg></span>
+                <span class="ss-toolbar__label">Toggle</span>
+              </button>
+              <button class="ss-toolbar__combo" type="button"
+                      data-menu-target="tb2-dropdown"
+                      style="anchor-name: --tb2-dropdown;"
+                      aria-haspopup="menu" aria-expanded="false">
+                <span class="ss-toolbar__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gallery-icon-box"/></svg></span>
+                <span class="ss-toolbar__label">Dropdown</span>
+                <span class="ss-toolbar__chevron" aria-hidden="true"></span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /.gallery-widgets__col (right) -->
+    </div><!-- /.gallery-widgets -->
+
+    <!-- Menu popovers — kept outside the grid so the anchor positioning
+         lifts them above row clipping. UE's shared NewMenuDelegate fills
+         both Menu 1 and Menu 2 with the same content; the recursive
+         Sub Menu calls MakeMenuEntries again. To avoid 6 nearly-identical
+         copies of the entry block the markup uses one template per menu,
+         expanded by hand. -->
+
+    <!-- Menu 1 -->
+    <div class="ss-menu" popover="manual" id="gallery-menu-1"
+         role="menu" aria-label="Menu 1"
+         style="position-anchor: --gallery-menu-1;">
+      <div class="ss-search ss-menu__search">
+        <span class="ss-search__icon" aria-hidden="true"></span>
+        <input class="ss-input" type="search"
+               placeholder="Start typing to search"
+               aria-label="Filter menu">
+        <button class="ss-search__clear" type="button" aria-label="Clear"></button>
+      </div>
+      <div class="ss-menu__heading">Menu Header 1</div>
+      <button class="ss-menu__entry" type="button" role="menuitem">
+        <span class="ss-menu__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gallery-icon-box"/></svg></span>
+        <span class="ss-menu__label">Menu Entry 1</span>
+      </button>
+      <button class="ss-menu__entry" type="button" role="menuitem">
+        <span class="ss-menu__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gallery-icon-box"/></svg></span>
+        <span class="ss-menu__label">Menu Entry 2</span>
+      </button>
+      <button class="ss-menu__entry" type="button" role="menuitem">
+        <span class="ss-menu__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gallery-icon-box"/></svg></span>
+        <span class="ss-menu__label">Menu Entry 3</span>
+      </button>
+      <button class="ss-menu__entry" type="button" role="menuitem">
+        <span class="ss-menu__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gallery-icon-box"/></svg></span>
+        <span class="ss-menu__label">Menu Entry 4</span>
+      </button>
+      <button class="ss-menu__entry" type="button" role="menuitem"
+              data-menu-target="gallery-submenu-1"
+              style="anchor-name: --gallery-submenu-1;"
+              aria-haspopup="menu" aria-expanded="false">
+        <span class="ss-menu__label">Sub Menu 1</span>
+        <span class="ss-menu__chevron"></span>
+      </button>
+      <div class="ss-menu__heading">Menu Header 2</div>
+      <button class="ss-menu__entry" type="button" role="menuitem">
+        <span class="ss-menu__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gallery-icon-box"/></svg></span>
+        <span class="ss-menu__label">Menu Entry 5</span>
+      </button>
+      <button class="ss-menu__entry" type="button" role="menuitem">
+        <span class="ss-menu__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gallery-icon-box"/></svg></span>
+        <span class="ss-menu__label">Menu Entry 6</span>
+      </button>
+      <button class="ss-menu__entry" type="button" role="menuitem">
+        <span class="ss-menu__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gallery-icon-box"/></svg></span>
+        <span class="ss-menu__label">Menu Entry 7</span>
+      </button>
+      <button class="ss-menu__entry" type="button" role="menuitem">
+        <span class="ss-menu__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gallery-icon-box"/></svg></span>
+        <span class="ss-menu__label">Menu Entry 8</span>
+      </button>
+    </div>
+
+    <!-- Sub Menu 1 (shared by Menu 1's recursive submenu invocation).
+         Slate's MakeMenuEntries emits 4 plain entries with the box-perspective
+         icon — same as the top-level Entries 1–4. -->
+    <div class="ss-menu ss-menu--submenu" popover="manual" id="gallery-submenu-1"
+         role="menu" aria-label="Sub Menu 1"
+         style="position-anchor: --gallery-submenu-1;">
+      <div class="ss-search ss-menu__search">
+        <span class="ss-search__icon" aria-hidden="true"></span>
+        <input class="ss-input" type="search"
+               placeholder="Start typing to search"
+               aria-label="Filter submenu">
+        <button class="ss-search__clear" type="button" aria-label="Clear"></button>
+      </div>
+      <button class="ss-menu__entry" type="button" role="menuitem">
+        <span class="ss-menu__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gallery-icon-box"/></svg></span>
+        <span class="ss-menu__label">Menu Entry 1</span>
+      </button>
+      <button class="ss-menu__entry" type="button" role="menuitem">
+        <span class="ss-menu__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gallery-icon-box"/></svg></span>
+        <span class="ss-menu__label">Menu Entry 2</span>
+      </button>
+      <button class="ss-menu__entry" type="button" role="menuitem">
+        <span class="ss-menu__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gallery-icon-box"/></svg></span>
+        <span class="ss-menu__label">Menu Entry 3</span>
+      </button>
+      <button class="ss-menu__entry" type="button" role="menuitem">
+        <span class="ss-menu__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gallery-icon-box"/></svg></span>
+        <span class="ss-menu__label">Menu Entry 4</span>
+      </button>
+    </div>
+
+    <!-- Menu 2 — identical content to Menu 1 via shared NewMenuDelegate. -->
+    <div class="ss-menu" popover="manual" id="gallery-menu-2"
+         role="menu" aria-label="Menu 2"
+         style="position-anchor: --gallery-menu-2;">
+      <div class="ss-search ss-menu__search">
+        <span class="ss-search__icon" aria-hidden="true"></span>
+        <input class="ss-input" type="search"
+               placeholder="Start typing to search"
+               aria-label="Filter menu">
+        <button class="ss-search__clear" type="button" aria-label="Clear"></button>
+      </div>
+      <div class="ss-menu__heading">Menu Header 1</div>
+      <button class="ss-menu__entry" type="button" role="menuitem">
+        <span class="ss-menu__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gallery-icon-box"/></svg></span>
+        <span class="ss-menu__label">Menu Entry 1</span>
+      </button>
+      <button class="ss-menu__entry" type="button" role="menuitem">
+        <span class="ss-menu__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gallery-icon-box"/></svg></span>
+        <span class="ss-menu__label">Menu Entry 2</span>
+      </button>
+      <button class="ss-menu__entry" type="button" role="menuitem">
+        <span class="ss-menu__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gallery-icon-box"/></svg></span>
+        <span class="ss-menu__label">Menu Entry 3</span>
+      </button>
+      <button class="ss-menu__entry" type="button" role="menuitem">
+        <span class="ss-menu__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gallery-icon-box"/></svg></span>
+        <span class="ss-menu__label">Menu Entry 4</span>
+      </button>
+      <button class="ss-menu__entry" type="button" role="menuitem"
+              data-menu-target="gallery-submenu-2"
+              style="anchor-name: --gallery-submenu-2;"
+              aria-haspopup="menu" aria-expanded="false">
+        <span class="ss-menu__label">Sub Menu 1</span>
+        <span class="ss-menu__chevron"></span>
+      </button>
+      <div class="ss-menu__heading">Menu Header 2</div>
+      <button class="ss-menu__entry" type="button" role="menuitem">
+        <span class="ss-menu__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gallery-icon-box"/></svg></span>
+        <span class="ss-menu__label">Menu Entry 5</span>
+      </button>
+      <button class="ss-menu__entry" type="button" role="menuitem">
+        <span class="ss-menu__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gallery-icon-box"/></svg></span>
+        <span class="ss-menu__label">Menu Entry 6</span>
+      </button>
+      <button class="ss-menu__entry" type="button" role="menuitem">
+        <span class="ss-menu__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gallery-icon-box"/></svg></span>
+        <span class="ss-menu__label">Menu Entry 7</span>
+      </button>
+      <button class="ss-menu__entry" type="button" role="menuitem">
+        <span class="ss-menu__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gallery-icon-box"/></svg></span>
+        <span class="ss-menu__label">Menu Entry 8</span>
+      </button>
+    </div>
+
+    <!-- Sub Menu 1 invoked from Menu 2. Slate uses the same MakeMenuEntries
+         delegate again — same 4 plain entries with the box-perspective icon. -->
+    <div class="ss-menu ss-menu--submenu" popover="manual" id="gallery-submenu-2"
+         role="menu" aria-label="Sub Menu 1"
+         style="position-anchor: --gallery-submenu-2;">
+      <div class="ss-search ss-menu__search">
+        <span class="ss-search__icon" aria-hidden="true"></span>
+        <input class="ss-input" type="search"
+               placeholder="Start typing to search"
+               aria-label="Filter submenu">
+        <button class="ss-search__clear" type="button" aria-label="Clear"></button>
+      </div>
+      <button class="ss-menu__entry" type="button" role="menuitem">
+        <span class="ss-menu__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gallery-icon-box"/></svg></span>
+        <span class="ss-menu__label">Menu Entry 1</span>
+      </button>
+      <button class="ss-menu__entry" type="button" role="menuitem">
+        <span class="ss-menu__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gallery-icon-box"/></svg></span>
+        <span class="ss-menu__label">Menu Entry 2</span>
+      </button>
+      <button class="ss-menu__entry" type="button" role="menuitem">
+        <span class="ss-menu__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gallery-icon-box"/></svg></span>
+        <span class="ss-menu__label">Menu Entry 3</span>
+      </button>
+      <button class="ss-menu__entry" type="button" role="menuitem">
+        <span class="ss-menu__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gallery-icon-box"/></svg></span>
+        <span class="ss-menu__label">Menu Entry 4</span>
+      </button>
+    </div>
+
+    <!-- Toolbar combo menus. BuildToolbar's lambdas call MakeMenuEntries
+         (SStarshipGallery.cpp:630-635), which is 4 entries with the
+         box-perspective icon — no headings, no sub-menus, no filter box.
+         Each toolbar combo / settings-region arrow opens its own popover
+         instance; ids are unique so initMenus() pairs each trigger with
+         the right anchor. -->
+
+    <div class="ss-menu" popover="manual" id="tb1-dropdown"
+         role="menu" aria-label="Toolbar Dropdown"
+         style="position-anchor: --tb1-dropdown;">
+      <button class="ss-menu__entry" type="button" role="menuitem">
+        <span class="ss-menu__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gallery-icon-box"/></svg></span>
+        <span class="ss-menu__label">Menu Entry 1</span>
+      </button>
+      <button class="ss-menu__entry" type="button" role="menuitem">
+        <span class="ss-menu__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gallery-icon-box"/></svg></span>
+        <span class="ss-menu__label">Menu Entry 2</span>
+      </button>
+      <button class="ss-menu__entry" type="button" role="menuitem">
+        <span class="ss-menu__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gallery-icon-box"/></svg></span>
+        <span class="ss-menu__label">Menu Entry 3</span>
+      </button>
+      <button class="ss-menu__entry" type="button" role="menuitem">
+        <span class="ss-menu__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gallery-icon-box"/></svg></span>
+        <span class="ss-menu__label">Menu Entry 4</span>
+      </button>
+    </div>
+
+    <div class="ss-menu" popover="manual" id="tb1-set1"
+         role="menu" aria-label="Toolbar Settings 1"
+         style="position-anchor: --tb1-set1;">
+      <button class="ss-menu__entry" type="button" role="menuitem">
+        <span class="ss-menu__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gallery-icon-box"/></svg></span>
+        <span class="ss-menu__label">Menu Entry 1</span>
+      </button>
+      <button class="ss-menu__entry" type="button" role="menuitem">
+        <span class="ss-menu__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gallery-icon-box"/></svg></span>
+        <span class="ss-menu__label">Menu Entry 2</span>
+      </button>
+      <button class="ss-menu__entry" type="button" role="menuitem">
+        <span class="ss-menu__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gallery-icon-box"/></svg></span>
+        <span class="ss-menu__label">Menu Entry 3</span>
+      </button>
+      <button class="ss-menu__entry" type="button" role="menuitem">
+        <span class="ss-menu__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gallery-icon-box"/></svg></span>
+        <span class="ss-menu__label">Menu Entry 4</span>
+      </button>
+    </div>
+
+    <div class="ss-menu" popover="manual" id="tb1-set2"
+         role="menu" aria-label="Toolbar Settings 2"
+         style="position-anchor: --tb1-set2;">
+      <button class="ss-menu__entry" type="button" role="menuitem">
+        <span class="ss-menu__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gallery-icon-box"/></svg></span>
+        <span class="ss-menu__label">Menu Entry 1</span>
+      </button>
+      <button class="ss-menu__entry" type="button" role="menuitem">
+        <span class="ss-menu__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gallery-icon-box"/></svg></span>
+        <span class="ss-menu__label">Menu Entry 2</span>
+      </button>
+      <button class="ss-menu__entry" type="button" role="menuitem">
+        <span class="ss-menu__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gallery-icon-box"/></svg></span>
+        <span class="ss-menu__label">Menu Entry 3</span>
+      </button>
+      <button class="ss-menu__entry" type="button" role="menuitem">
+        <span class="ss-menu__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gallery-icon-box"/></svg></span>
+        <span class="ss-menu__label">Menu Entry 4</span>
+      </button>
+    </div>
+
+    <div class="ss-menu" popover="manual" id="tb2-dropdown"
+         role="menu" aria-label="Toolbar 2 Dropdown"
+         style="position-anchor: --tb2-dropdown;">
+      <button class="ss-menu__entry" type="button" role="menuitem">
+        <span class="ss-menu__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gallery-icon-box"/></svg></span>
+        <span class="ss-menu__label">Menu Entry 1</span>
+      </button>
+      <button class="ss-menu__entry" type="button" role="menuitem">
+        <span class="ss-menu__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gallery-icon-box"/></svg></span>
+        <span class="ss-menu__label">Menu Entry 2</span>
+      </button>
+      <button class="ss-menu__entry" type="button" role="menuitem">
+        <span class="ss-menu__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gallery-icon-box"/></svg></span>
+        <span class="ss-menu__label">Menu Entry 3</span>
+      </button>
+      <button class="ss-menu__entry" type="button" role="menuitem">
+        <span class="ss-menu__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gallery-icon-box"/></svg></span>
+        <span class="ss-menu__label">Menu Entry 4</span>
+      </button>
+    </div>
+
+  </div></section>
+
+  <!-- Showcase-only: set the 4th checkbox to native :indeterminate state.
+       Slate paints Undetermined with a dash SVG; CSS :indeterminate selector
+       only triggers via JS-set property. Marker attribute on the input keeps
+       the markup declarative. -->
+  <script>
+    document.querySelectorAll('input[type="checkbox"][data-indeterminate]')
+      .forEach(cb => { cb.indeterminate = true; });
+
+    // Mirror SStarshipGallery.cpp's RadioChoice STextBlock — the digit on the
+    // right of the radio row tracks which radio is selected (index 0–4).
+    document.querySelectorAll('.gallery-widgets__samples--radios').forEach(row => {
+      const radios = row.querySelectorAll('input.ss-radio');
+      const label = row.querySelector('.gallery-widgets__radio-value');
+      radios.forEach((r, i) => {
+        r.addEventListener('change', () => {
+          if (r.checked && label) label.textContent = String(i);
+        });
+      });
+    });
+
+    // Combobox open/close + selection wiring lives in src/js/starship.js,
+    // the opt-in helper end users load. The page already pulls in
+    // dist/starship.js via the <script src="…starship.js"> tag above the
+    // <body> — that auto-inits every .ss-combo on the page.
+
+    // QA-shim: row checkbox → native `disabled` attribute on every form
+    // control inside .gallery-widgets__samples. The dist framework owns the
+    // disabled paint for each widget (.ss-btn:disabled, .ss-checkbox:disabled,
+    // .ss-segmented:has(input:disabled), .ss-numeric:has(input:disabled),
+    // .ss-combo__trigger:disabled, .ss-slider:disabled, .ss-input--bare:disabled).
+    // This script just toggles the attribute so end-user-style
+    // `<button disabled>` / `<input disabled>` markup is exercised in the
+    // gallery. Showcase-only.
+    //
+    // Spans (.ss-inline-edit) can't carry a native disabled attribute, so for
+    // those we propagate aria-disabled instead. The framework's
+    // .ss-inline-edit[aria-disabled="true"] rule paints the tint and the
+    // starship.js init refuses to enter edit mode.
+    document.querySelectorAll('.gallery-widgets__row').forEach(row => {
+      const cb = row.querySelector('.gallery-widgets__cb input');
+      const formTargets = row.querySelectorAll(
+        '.gallery-widgets__samples button, ' +
+        '.gallery-widgets__samples input, ' +
+        '.gallery-widgets__samples select, ' +
+        '.gallery-widgets__samples textarea'
+      );
+      const ariaTargets = row.querySelectorAll(
+        '.gallery-widgets__samples [data-inline-edit], ' +
+        '.gallery-widgets__samples .ss-progress'
+      );
+      if (!cb || (!formTargets.length && !ariaTargets.length)) return;
+      const sync = () => {
+        formTargets.forEach(t => { t.disabled = !cb.checked; });
+        ariaTargets.forEach(t => {
+          if (cb.checked) t.removeAttribute('aria-disabled');
+          else            t.setAttribute('aria-disabled', 'true');
+        });
+      };
+      cb.addEventListener('change', sync);
+      sync();
+    });
+  </script>
+
+  <!-- ======================================================== List Widgets tab -->
+  <section class="ss-tab-panel ss-tab-panel--minor"><div class="gallery-content">
+    <div class="gallery-section">
+      <h2 class="gallery-section__title">List widgets</h2>
+      <div class="gallery-section__placeholder">
+        List view, Tile view, Tree view — v0.2.0.
+      </div>
+    </div>
+  </div></section>
+
+    </div><!-- /.ss-tabs (minor: 5 page tabs) -->
+  </section><!-- /.ss-tab-panel (major: Starship Gallery) -->
+</div><!-- /.ss-tabs (major) -->
+
+</body>
+</html>

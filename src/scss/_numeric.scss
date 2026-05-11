@@ -1,0 +1,255 @@
+// ============================================================================
+// _numeric.scss — Slate's SNumericEntryBox / SSpinBox family (Group 4).
+//
+//   .ss-numeric                          drag, no fill bar — UE Editor's
+//                                        default for numeric properties in
+//                                        the Details panel.
+//   .ss-numeric.ss-numeric--filled       drag + Primary-coloured fill bar —
+//                                        Starship Gallery showcase of SSpinBox.
+//   .ss-numeric.ss-numeric--no-spin      no drag, no fill — plain numeric
+//                                        input (SNumericEntryBox<T> with
+//                                        AllowSpin = false).
+//
+//   .ss-numeric.is-dragging              modifier set by starship.js while
+//                                        the cursor is past the drag
+//                                        threshold.
+//   .ss-numeric.is-editing               modifier set when a click without
+//                                        drag opens the inline text editor.
+//
+// One semantic family (Slate's "numeric entry box"), three rendering modes.
+// SSpinBox in the Starship Gallery uses ss-numeric--filled; the Editor's
+// Details panel uses bare .ss-numeric (drag + no fill); SNumericEntryBox
+// with AllowSpin=false uses ss-numeric--no-spin (plain text-input behaviour).
+// Slate's "SpinBox" key is aliased to "NumericEntrySpinBox" at
+// StarshipCoreStyle.cpp:630 — one CSS implementation covers both.
+//
+// ---------- Usage (mirrors Slate's SSpinBox<float> constructor args) -------
+//
+//   <div class="ss-numeric ss-numeric--filled"
+//        data-num-min="-1000"           ← MinValue (hard clamp)
+//        data-num-max="1000"            ← MaxValue (hard clamp)
+//        data-num-min-slider="-500"     ← MinSliderValue (fill 0% anchor)
+//        data-num-max-slider="500"      ← MaxSliderValue (fill 100% anchor)
+//        data-num-value="0"             ← initial value
+//        data-num-delta="0.5">          ← step (reserved for keyboard inc/dec)
+//     <div class="ss-numeric__fill"></div>
+//     <input class="ss-numeric__input" type="text">
+//   </div>
+//
+// Min/Max bound the **value** absolutely — drag can never push past them.
+// MinSlider/MaxSlider bound the **fill bar** — once value exits that span,
+// the bar clamps to 0% or 100% but value keeps moving toward Min/Max. Drag
+// sensitivity is (MaxSlider - MinSlider) / widgetWidth per px, so a full-
+// width drag spans exactly one MinSlider→MaxSlider sweep, matching Slate.
+// Only `data-num-min-slider` and `data-num-max-slider` are required when
+// value should ever exceed the visible-fill span; otherwise omit them and
+// MinValue/MaxValue become the fill anchors.
+//
+// All wiring lives in dist/starship.js (see src/js/starship.js → initNumerics).
+//
+// Two sources of truth (CLAUDE.md "Visual fidelity workflow"):
+//
+// 1) Widget Reflector snapshot — screenshots/reflector/widgets-tab.widgetsnapshot
+//
+//    SSpinBox<float> at-line 1319:
+//      SSpinBox<float>          size=[357,22]  desired=[84,22]
+//        SHorizontalBox           size=[353,20] desired=[80,20]    ← 1 px inset
+//          STextBlock               size=[339,15] desired=[66,15]  ← value text
+//          SEditableText            size=[0,0]                     ← idle hidden
+//          SImage                   size=[0,0]                     ← idle hidden
+//
+//    SNumericEntryBox<float> at-line 1333 (AllowSpin=true):
+//      SNumericEntryBox<float>  size=[357,22]  desired=[35,22]
+//        SOverlay                 size=[357,22]
+//          SSpinBox<NumericType>    size=[357,22]                  ← identical
+//            SHorizontalBox           size=[353,20]                  to SSpinBox
+//              STextBlock               size=[339,15]
+//              ...
+//          SEditableText            size=[0,0]
+//
+//    SNumericEntryBox<float> at-line 1352 (AllowSpin=false):
+//      SNumericEntryBox<float>  size=[357,23]
+//        SBorder                  size=[357,23]
+//          SOverlay                 size=[357,23]
+//            SEditableText            size=[345,15]
+//
+//    Outer 22 px for spinning variants, 23 px for no-spin (the No-Spin
+//    branch uses NormalEditableTextBox padding 8,3,8,4 = +1 px vs SpinBox's
+//    7,2.5,7,2.5 + InsetPadding(1)).
+//
+// 2) UE source — StarshipCoreStyle.cpp:611–630
+//
+//    FSpinBoxStyle "SpinBox" (= "NumericEntrySpinBox"):
+//      BackgroundBrush         = RoundedBox(Input #0F0F0F, r=4, InputOutline 1px)
+//      HoveredBackgroundBrush  = RoundedBox(Input,         r=4, Hover #575757 1px)
+//      ActiveBackgroundBrush   = RoundedBox(Input,         r=4, Primary #0070E0 1px)
+//      ActiveFillBrush         = RoundedBox(Primary #0070E0, r=4, Transparent 1px)
+//      HoveredFillBrush        = RoundedBox(Hover #575757,   r=4, Transparent 1px)
+//      InactiveFillBrush       = RoundedBox(Dropdown #383838, r=4, Transparent 1px)
+//      ArrowsImage             = NoResource                  ← no inc/dec arrows
+//      ForegroundColor         = ForegroundHover #FFFFFF
+//      TextPadding             = FMargin(7, 2.5, 7, 2.5)
+//      InsetPadding            = FMargin(1)
+//
+//    The fill brush represents the value's position between MinSliderValue
+//    and MaxSliderValue. Its width changes with state colour (Inactive →
+//    Hovered → Active) and its radius matches the outer 4 px so the corner
+//    where the fill meets the outline curves cleanly. Per-state foreground
+//    stays ForegroundHover (white) across all three states.
+//
+// Slate flips state colours instantly — no transitions (memory:
+// feedback_no_transitions).
+// ============================================================================
+
+@use "variables" as *;
+
+.ss-numeric {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  width: 100%;
+  height: 22px;
+  box-sizing: border-box;
+  background: var(--ss-input);                    // Input #0F0F0F
+  border: 1px solid var(--ss-input-outline);      // InputOutline #383838
+  border-radius: var(--ss-radius);                // 4 px
+  overflow: hidden;
+  cursor: ew-resize;
+  user-select: none;
+  font-family: var(--ss-font);
+  font-size: var(--ss-font-size);
+  font-weight: var(--ss-weight);
+  font-variant-numeric: tabular-nums;             // equal-width digits
+  line-height: 1;
+  color: var(--ss-foreground-hover);              // ForegroundHover #FFFFFF
+
+  &:hover {
+    border-color: var(--ss-hover);                // Hover #575757
+  }
+
+  // Active = drag in progress OR text-input has focus (editing).
+  // We toggle .is-dragging and .is-editing from JS; :focus-within picks up
+  // keyboard focus on the inner input. All three should paint the same
+  // Active border ring.
+  &.is-dragging,
+  &.is-editing,
+  &:focus-within {
+    border-color: var(--ss-primary);              // Primary #0070E0
+  }
+}
+
+// ----- Fill bar (value's position between MinSliderValue and MaxSliderValue)
+//
+// Hidden by default — only the .ss-numeric--filled modifier shows it. Width
+// is driven by starship.js. InsetPadding(1) on the FSpinBoxStyle puts the
+// fill 1 px inside the padding-box on every side (= 2 px total inset from
+// the outer edge with the 1 px border). Height 22-2-2 = 18 px.
+.ss-numeric__fill {
+  display: none;
+  position: absolute;
+  top: 1px;
+  bottom: 1px;
+  left: 1px;
+  background: var(--ss-dropdown);                 // InactiveFill = Dropdown
+  border-radius: calc(var(--ss-radius) - 2px);    // 2 px → cleanly nested
+  pointer-events: none;
+  z-index: 0;
+}
+
+.ss-numeric--filled .ss-numeric__fill {
+  display: block;
+}
+
+.ss-numeric--filled:hover .ss-numeric__fill {
+  background: var(--ss-hover);                    // HoveredFill = Hover
+}
+
+.ss-numeric--filled.is-dragging .ss-numeric__fill,
+.ss-numeric--filled.is-editing .ss-numeric__fill,
+.ss-numeric--filled:focus-within .ss-numeric__fill {
+  background: var(--ss-primary);                  // ActiveFill = Primary
+}
+
+// While text-editing, hide the fill — the text is what matters now.
+// (Matches Slate, which swaps SSpinBox content for SEditableText on entry.)
+.ss-numeric--filled.is-editing .ss-numeric__fill {
+  display: none;
+}
+
+// ----- Value text / input ---------------------------------------------------
+//
+// Same element shows the value as plain text (idle / drag) AND becomes a
+// text input when editing. We use a real <input type="text"> so that focus,
+// caret, selection, and keyboard editing come for free — but we set
+// `pointer-events: none` until edit mode so mousedown on it lands on the
+// .ss-numeric wrapper and starts a drag.
+.ss-numeric__input {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  padding: 0 7px;                                 // TextPadding (7, _, 7, _)
+  background: transparent;
+  border: 0;
+  color: inherit;
+  font: inherit;
+  text-align: left;                               // Slate aligns numeric text left
+  outline: none;
+  pointer-events: none;
+  caret-color: transparent;
+  -moz-appearance: textfield;
+  appearance: textfield;
+  box-sizing: border-box;
+}
+
+.ss-numeric.is-editing .ss-numeric__input {
+  pointer-events: auto;
+  cursor: text;
+  caret-color: auto;
+}
+
+// Native spinner buttons live on <input type="number"> in some browsers —
+// kill them so Slate's "no arrows" rule holds.
+.ss-numeric__input::-webkit-outer-spin-button,
+.ss-numeric__input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  appearance: none;
+  margin: 0;
+}
+
+// ----- .ss-numeric--no-spin — drag-less variant (AllowSpin=false) ----------
+//
+// Plain numeric input behaviour: input is always editable (no drag-to-edit
+// toggle), no fill bar. Reflector outer for the SNumericEntryBox(No Spin)
+// is 357×23 (1 px taller than the spinning variants, line 1352).
+.ss-numeric--no-spin {
+  height: 23px;
+  cursor: text;
+}
+.ss-numeric--no-spin .ss-numeric__input {
+  pointer-events: auto;
+  cursor: text;
+  caret-color: auto;
+}
+
+// ----- Disabled --------------------------------------------------------------
+//
+// SSpinBox has no SetDisabled brush — Slate applies its global α=0.45 tint to
+// the existing brushes. Detected via the inner <input>'s native :disabled
+// state (CSS :has() selector — Chrome 105+, Firefox 121+, Safari 15.4+).
+// Pixel-verified against UnrealInsights_Widgets_Disabled.png:
+//   bg     Input × .45            → composites #1B1B1B over Panel #242424
+//   border InputOutline × .45     → ~#2A
+//   fill   Dropdown × .45 (Inactive) → composites #282828
+//   text   ForegroundHover × .45  → ~peak.r 137 on Dropdown-tinted bg
+
+.ss-numeric:has(.ss-numeric__input:disabled) {
+  cursor: not-allowed;
+  background: rgba(15, 15, 15, 0.45);     // Input × 0.45
+  border-color: rgba(56, 56, 56, 0.45);   // InputOutline × 0.45
+  color: rgba(255, 255, 255, 0.45);       // ForegroundHover × 0.45
+}
+
+.ss-numeric:has(.ss-numeric__input:disabled) .ss-numeric__fill {
+  background: rgba(56, 56, 56, 0.45);     // Dropdown × 0.45 (InactiveFill)
+}

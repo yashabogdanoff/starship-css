@@ -1,0 +1,259 @@
+// ============================================================================
+// _buttons.scss
+//
+// Four button variants exactly as defined in StarshipCoreStyle.cpp and shown
+// on the Starship Gallery → "Starship Widgets" tab:
+//
+//   .ss-btn               Default/Secondary  (Slate "Button")
+//   .ss-btn--primary      filled blue        (Slate "PrimaryButton")
+//   .ss-btn--simple       no bg, hover gray  (Slate "SimpleButton")
+//   .ss-btn--toggle       checkbox styled as toggle (Slate "ToggleButtonCheckbox")
+//
+// Each variant supports text-only / icon+text / icon-only via the
+// .ss-btn__icon child element. The icon-only modifier .ss-btn--icon-only
+// tightens horizontal padding.
+//
+// Canonical Slate values:
+//   ButtonMargins         (12, 1.5, 12, 1.5)   used by Primary, Default, Simple
+//   PressedButtonMargins  (12, 2.5, 12, 0.5)   pressed shifts text down 1 SU
+//   ToggleButtonMargins   (16, 2)              wider; used by toggle
+//   InputFocusRadius      4 px                 corner radius
+//   InputFocusThickness   1 px                 outline thickness (Primary/Default only)
+//
+// All four use the "ButtonText" / "SmallButtonText" text style, both of which
+// resolve to NormalText (10pt = 13 px) at Regular weight (400). Primary is
+// NOT bold in Starship — that's a common misconception.
+//
+// Authoritative Reflector-snapshot dimensions (LayoutScale = 1.00 across the
+// Widgets-tab; SBox.HeightOverride(16) keeps inner content fixed at 16 px):
+//
+//   Variant            Outer    SBox      H-pad each   V-pad each   Border
+//   Primary text-only  63 × 23  31 × 16   15           3.5          1 px Input
+//   Primary icon+text  87 × 23  55 × 16   15           3.5          1 px Input
+//   Primary icon-only  48 × 23  16 × 16   15           3.5          1 px Input
+//   Default same as Primary (uses "Button" style instead of "PrimaryButton")
+//   Simple text-only   43 × 22  31 × 16   6            3            none
+//   Simple icon+text   67 × 22  55 × 16   6            3            none
+//   Simple icon-only   28 × 22  16 × 16   6            3            none
+//   Toggle text-only   63 × 20  31 × 16   16           2            none
+//   Toggle icon+text   87 × 20  55 × 16   16           2            none
+//   Toggle icon-only   48 × 20  16 × 16   16           2            none
+//
+// Three notable mismatches with the source-only reading of ButtonMargins:
+//   1. Primary/Default real horizontal padding is 15, not 12. The extra 3
+//      come from somewhere inside SButton's content padding stack we don't
+//      need to chase — the Reflector value is canonical.
+//   2. The gallery's "SimpleButton" registry key is bound to
+//      `SimpleButtonIconOnly` (StarshipCoreStyle.cpp:1455), so all three
+//      Simple variants use 6 px horizontal / 3 px vertical, not the 12 / 1.5
+//      ButtonMargins quoted earlier in this header.
+//   3. Simple is 22 px tall, Toggle is 20 px tall — only Primary/Default
+//      reach the full 23 px. Don't share padding between variants.
+// ============================================================================
+
+@use "variables" as *;
+
+// ----- Base (= Slate "Button" / Default-Secondary) -------------------------
+
+.ss-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;                              // LeftRightLabel icon→text spacer (Space=8)
+  vertical-align: middle;
+
+  appearance: none;
+  -webkit-appearance: none;
+
+  // Reflector: outer 63 × 23 (text 31) / 48 × 23 (icon 16). border-box.
+  // Asymmetric vertical padding (3.5 top, 1.5 bottom): UE's LeftRightLabel
+  // text-slot uses Padding(Space, 0.5f, 0.f, 0.f) — 0.5 SU top "compensate
+  // down for the baseline since we're using all caps". Snapshot shows text
+  // top-offset 4.5, bottom-offset 3.5 within the 23 px button. align-items:
+  // center alone would centre symmetrically; the +1 px asymmetry pushes
+  // text 1 px lower so it lands at UE's exact baseline.
+  padding: 3.5px 15px 1.5px;
+  border: 1px solid var(--ss-input);     // FStyleColors::Input #0F0F0F outline
+  border-radius: var(--ss-radius);       // 4 px = InputFocusRadius
+  background: var(--ss-secondary);       // #383838
+  color: var(--ss-foreground-hover);     // #FFFFFF (button text on dark surface)
+  font-family: inherit;
+  font-size: var(--ss-font-size);        // 13 px
+  font-weight: var(--ss-weight);         // 400 — Starship Regular, not Bold
+  line-height: 16px;                     // matches LeftRightLabel HeightOverride(16)
+  text-decoration: none;
+  white-space: nowrap;
+  user-select: none;
+  cursor: pointer;
+  // UE Starship has NO transitions on widgets — hover/press/disabled all
+  // flip instantly (FCurveSequence is used elsewhere in Slate but not for
+  // these state changes). Only the CheckBox checkmark animates (group 3).
+
+  &:hover {
+    background: var(--ss-hover);         // #575757
+  }
+
+  &:active {
+    background: var(--ss-header);        // #2F2F2F
+    // PressedButtonMargins shifts text 1 SU down (top +1, bottom -1)
+    // applied on top of the asymmetric resting padding above.
+    padding: 4.5px 15px 0.5px;
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 1px var(--ss-primary);
+  }
+
+  &:disabled,
+  &[aria-disabled="true"] {
+    background: var(--ss-dropdown);      // #383838 — SetDisabled brush
+    border-color: var(--ss-recessed);    // #1A1A1A — SetDisabled outline
+    // Slate applies a global ~0.45 alpha disabled tint to foreground only
+    // (bg/outline keep their SetDisabled brush colours at full strength).
+    // Pixel-sampled UE Disabled "Label" peak R = 117 ≈ Foreground #C0C0C0
+    // at alpha 0.45 over Dropdown #383838.
+    color: rgba(192, 192, 192, 0.45);
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+}
+
+// ----- Icon slot -----------------------------------------------------------
+
+.ss-btn__icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  align-items: center;
+  justify-content: center;
+
+  // Counter the +1 px text-down asymmetry from the button's vertical padding:
+  // UE's LeftRightLabel applies the 0.5 SU baseline shift only on the
+  // text-slot (Padding(Space, 0.5f, 0.f, 0.f)). The icon-slot has no
+  // padding and stays vertically centered. Our asymmetric button padding
+  // (e.g. 3.5/1.5 on Primary) shifts both flex children by 1 px; this
+  // -1 px translate brings the icon back to true center.
+  transform: translateY(-1px);
+
+  svg {
+    width: 100%;
+    height: 100%;
+    stroke: currentColor;
+  }
+}
+
+// Icon-only buttons share the base 15 px horizontal padding (the SBox in
+// UE is 16 × 16 for the icon and the SButton wraps it in the same 15 px
+// content padding as text-only — Reflector outer = 48 × 23). Just kill
+// the icon→text gap.
+.ss-btn--icon-only {
+  gap: 0;
+}
+
+// ----- Primary -------------------------------------------------------------
+
+.ss-btn--primary {
+  background: var(--ss-primary);         // #0070E0
+  // NOTE: Slate's PrimaryButton uses ButtonText (Regular), not PrimaryButtonText
+  // (Bold). Don't override font-weight here.
+
+  &:hover {
+    background: var(--ss-primary-hover); // #0E86FF
+  }
+  &:active {
+    background: var(--ss-primary-press); // #0050A0
+  }
+}
+
+// ----- Simple (no bg / hover gray) -----------------------------------------
+
+.ss-btn--simple {
+  // The "SimpleButton" registry key is bound to SimpleButtonIconOnly (with
+  // its tighter SetNormalPadding(2,1,2,1)) at StarshipCoreStyle.cpp:1455.
+  // Reflector outer per variant: 43×22 / 67×22 / 28×22. Inner SBox=16h.
+  // border-box: padding-h = (outer - 2 - inner)/2 — wait there's no border.
+  // padding-h = (43-31)/2 = 6 for text; (28-16)/2 = 6 for icon-only ✓.
+  // padding-v = (22-16)/2 = 3.
+  // 4 top / 2 bottom keeps the +1 px text-down asymmetry from LeftRightLabel
+  // (Reflector: text top-offset 4 within Simple's 22 px height).
+  padding: 4px 6px 2px;
+  background: transparent;
+  border: none;                          // SimpleButton has NO outline
+  color: var(--ss-foreground);           // #C0C0C0
+
+  &:hover {
+    background: var(--ss-dropdown);      // #383838
+    color: var(--ss-foreground-hover);
+  }
+  &:active {
+    background: var(--ss-dropdown);
+    color: var(--ss-foreground-hover);
+    // Override base .ss-btn:active (which sets 4.5px 15px 0.5px for the
+    // bigger Primary/Default chrome) so Simple keeps its 6 px horizontal
+    // padding on press instead of jumping wider. Vertical shift +1 down
+    // matches SimpleButtonIconOnly.PressedPadding(2,2,2,0).
+    padding: 5px 6px 1px;
+  }
+  &:disabled,
+  &[aria-disabled="true"] {
+    background: transparent;
+    border: none;
+    // Same disabled tint as Primary/Default — Foreground at 0.45 alpha.
+    color: rgba(192, 192, 192, 0.45);
+  }
+}
+
+// ----- Toggle (checkbox styled as toggle) ----------------------------------
+// Slate's ToggleButtonCheckbox: no outline, ToggleButtonMargins(16, 2),
+// checked = Primary fill, unchecked = transparent → hover Dropdown.
+
+.ss-btn--toggle {
+  // ToggleButtonMargins(16, 2) — source canonical AND Reflector-confirmed.
+  // No outline → outer 63×20 for text, 48×20 for icon-only. Asymmetric
+  // 3 top / 1 bottom keeps the +1 px text-down offset from LeftRightLabel
+  // (Reflector: text top-offset 3 within Toggle's 20 px height).
+  padding: 3px 16px 1px;
+  border: none;
+  background: transparent;
+  color: var(--ss-foreground);
+
+  &:hover {
+    background: var(--ss-dropdown);      // UncheckedHoveredImage = Dropdown
+    color: var(--ss-foreground-hover);
+  }
+  &:active {
+    padding: 3px 16px 1px;               // Toggle has no press-shift
+  }
+
+  &[aria-pressed="true"] {
+    background: var(--ss-primary);       // CheckedImage = Primary
+    color: var(--ss-foreground-hover);
+
+    &:hover {
+      background: var(--ss-primary-hover);
+    }
+    &:active {
+      background: var(--ss-dropdown);    // CheckedPressedImage = Dropdown
+    }
+  }
+
+  // Toggle has no SetDisabled brush — Slate applies its global disabled
+  // tint (~0.45 alpha) to the whole widget. Override base .ss-btn:disabled
+  // so we don't paint Dropdown bg + Recessed outline.
+  &:disabled,
+  &[aria-disabled="true"] {
+    background: transparent;
+    border: none;
+    color: rgba(192, 192, 192, 0.45);
+
+    &[aria-pressed="true"] {
+      // Pressed-on disabled: keep Primary fill, fade with opacity so both
+      // bg and text get the disabled tint together.
+      background: var(--ss-primary);
+      color: var(--ss-foreground-hover);
+      opacity: 0.45;
+    }
+  }
+}

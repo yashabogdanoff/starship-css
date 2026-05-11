@@ -1,0 +1,25 @@
+// -----------------------------------------------------------------------------
+// starship-css — entry point.
+// Imports all partials in cascade order: variables → reset → typography →
+// surfaces → form controls → utility components.
+// -----------------------------------------------------------------------------
+
+@use "variables";
+@use "reset";
+@use "typography";
+@use "scrollbar";
+@use "panels";
+@use "toolbar";
+@use "buttons";
+@use "inputs";
+@use "select";
+@use "checkbox";
+@use "segmented";
+@use "combo";
+@use "menu";
+@use "slider";
+@use "numeric";
+@use "progress";
+@use "details";
+@use "tabs";
+@use "tooltip";

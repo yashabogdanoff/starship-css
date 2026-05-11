@@ -1,0 +1,128 @@
+// ============================================================================
+// _slider.scss — Slate's SSlider (Group 4 of Widgets tab).
+//
+//   .ss-slider                styles a native <input type="range"> to look
+//                             like Slate's SSlider (Orient_Horizontal).
+//
+// Two sources of truth (CLAUDE.md "Visual fidelity workflow"):
+//
+// 1) Widget Reflector snapshot — screenshots/reflector/widgets-tab.widgetsnapshot
+//    SSlider at-line 1261:
+//      SSlider                size=[357,8] desired=[16,8]
+//
+//    The 8 px outer height equals the thumb diameter (8×8). The bar runs
+//    along the centre and is 4 px tall (StarshipCoreStyle BarThickness).
+//    The thumb is fully round (radius 4 = half of 8).
+//
+// 2) UE source — StarshipCoreStyle.cpp:589–599
+//
+//    FSliderStyle "Slider":
+//      NormalBarImage    = RoundedBox(Input #0F0F0F, r=2, Input outline 1px)
+//      HoveredBarImage   = RoundedBox(Input #0F0F0F, r=2, Input outline 1px)
+//      DisabledBarImage  = RoundedBox(Input #0F0F0F, r=2, Recessed #1A1A1A 1px)
+//      NormalThumbImage  = RoundedBox(Foreground #C0C0C0, Icon8x8)
+//      HoveredThumbImage = RoundedBox(ForegroundHover #FFFFFF, Icon8x8)
+//      DisabledThumbImage= RoundedBox(Foreground #C0C0C0, Icon8x8)
+//      BarThickness      = 4 px
+//
+//    Same Input fill + same Input border on the bar means the outline only
+//    becomes visible in the disabled state (Recessed is darker than Input).
+//
+// Slate flips brushes instantly — no transitions (memory: feedback_no_transitions).
+// ============================================================================
+
+@use "variables" as *;
+
+.ss-slider {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
+  height: 8px;            // matches Reflector outer (= thumb diameter)
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+  vertical-align: middle;
+
+  // ----- Track (Bar) ----------------------------------------------------
+  // BarThickness=4. Same Input bg + Input outline → outline invisible.
+
+  &::-webkit-slider-runnable-track {
+    height: 4px;
+    background: var(--ss-input);
+    border: 1px solid var(--ss-input);
+    border-radius: 2px;
+    box-sizing: border-box;
+  }
+
+  &::-moz-range-track {
+    height: 4px;
+    background: var(--ss-input);
+    border: 1px solid var(--ss-input);
+    border-radius: 2px;
+    box-sizing: border-box;
+  }
+
+  // ----- Thumb (8×8 round Foreground) -----------------------------------
+  // margin-top centres the 8 px thumb on the 4 px bar:
+  //   bar top = (8 - 4) / 2 = 2 px   → thumb needs to start at -2 px
+  //   to overhang both sides equally.
+
+  &::-webkit-slider-thumb {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 8px;
+    height: 8px;
+    border: none;
+    border-radius: 50%;
+    background: var(--ss-foreground);
+    margin-top: -2px;
+  }
+
+  &::-moz-range-thumb {
+    width: 8px;
+    height: 8px;
+    border: none;
+    border-radius: 50%;
+    background: var(--ss-foreground);
+  }
+
+  // ----- States ---------------------------------------------------------
+
+  &:hover::-webkit-slider-thumb,
+  &:active::-webkit-slider-thumb {
+    background: var(--ss-foreground-hover);
+  }
+  &:hover::-moz-range-thumb,
+  &:active::-moz-range-thumb {
+    background: var(--ss-foreground-hover);
+  }
+
+  &:focus-visible {
+    outline: none;
+  }
+
+  // Disabled — Slate's DisabledBarImage uses Recessed-coloured outline. The
+  // global α=0.45 disabled tint is applied to every painted layer:
+  //   bar bg   Input    × 0.45  → composites #1B1B1B over Panel #242424
+  //   bar ring Recessed × 0.45  → composites ~#222
+  //   thumb    Foreground × 0.45 (pixel-verified against UE Disabled PNG)
+
+  &:disabled {
+    cursor: not-allowed;
+  }
+  &:disabled::-webkit-slider-runnable-track {
+    background: rgba(15, 15, 15, 0.45);    // Input × 0.45
+    border-color: rgba(26, 26, 26, 0.45);  // Recessed × 0.45
+  }
+  &:disabled::-webkit-slider-thumb {
+    background: rgba(192, 192, 192, 0.45); // Foreground × 0.45
+  }
+  &:disabled::-moz-range-track {
+    background: rgba(15, 15, 15, 0.45);
+    border-color: rgba(26, 26, 26, 0.45);
+  }
+  &:disabled::-moz-range-thumb {
+    background: rgba(192, 192, 192, 0.45);
+  }
+}

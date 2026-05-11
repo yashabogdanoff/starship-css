@@ -1,0 +1,41 @@
+{
+  "name": "starship-css",
+  "version": "0.0.1",
+  "description": "CSS framework that styles HTML to look like the Unreal Engine 5 editor (Slate UI). Inspired by Unreal Engine — not affiliated with Epic Games.",
+  "main": "dist/starship.css",
+  "style": "dist/starship.css",
+  "files": [
+    "dist/",
+    "src/scss/",
+    "src/js/",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build:css": "sass src/scss/starship.scss dist/starship.css --no-source-map",
+    "build:css-min": "postcss dist/starship.css -o dist/starship.min.css",
+    "build:js": "node -e \"require('fs').copyFileSync('src/js/starship.js','dist/starship.js')\"",
+    "build:js-min": "terser src/js/starship.js -c -m --comments=/^\\!/ -o dist/starship.min.js",
+    "build:mirror-docs": "node -e \"const fs=require('fs');fs.rmSync('docs/dist',{recursive:true,force:true});fs.mkdirSync('docs/dist',{recursive:true});for(const f of fs.readdirSync('dist'))fs.copyFileSync('dist/'+f,'docs/dist/'+f);\"",
+    "build": "npm run build:css && npm run build:css-min && npm run build:js && npm run build:js-min && npm run build:mirror-docs",
+    "watch": "sass --watch src/scss/starship.scss dist/starship.css",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "css",
+    "ui",
+    "unreal-engine",
+    "slate",
+    "ue5",
+    "dark-theme",
+    "editor-ui"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "cssnano": "^7.0.0",
+    "postcss": "^8.4.0",
+    "postcss-cli": "^11.0.0",
+    "sass": "^1.77.0",
+    "terser": "^5.47.1"
+  }
+}

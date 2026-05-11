@@ -1,0 +1,332 @@
+// ============================================================================
+// _combo.scss — Slate's SComboBox (Group 3 of Widgets tab).
+//
+// Two visually distinct variants — one CSS module:
+//
+//   .ss-combo                  → SComboBox  (gallery line 1099, "ComboBox")
+//   .ss-combo.ss-combo--simple → SComboBox  (gallery line 1078, "SimpleComboBox")
+//
+// They share the same anatomy (trigger + chevron-down + popover menu) but
+// differ in trigger size/brush (filled-input vs borderless) and menu row
+// height. Style chain documented under "Source intent" below.
+//
+// Two sources of truth (CLAUDE.md "Visual fidelity workflow"):
+//
+// 1) Widget Reflector snapshot — screenshots/reflector/widgets-tab.widgetsnapshot
+//
+//    SimpleComboBox at-line 1078:
+//      SComboBox<TSharedPtr<FString>>  size=[40,22]
+//        SButton                         size=[40,22]      ← style "SimpleButton"
+//          SHorizontalBox                  size=[36,20]    ← outer-content gap = 2,1
+//            SImage   (icon)                 size=[16,16]
+//            SOverlay (chevron)              size=[16,16]
+//              SImage (wide-chevron-down)      size=[16,16]
+//
+//    ComboBox at-line 1099:
+//      SComboBox<TSharedPtr<FString>>  size=[67,22]
+//        SButton                         size=[67,22]      ← style "ComboButton"
+//          SHorizontalBox                  size=[51,20]    ← outer-content gap = 8,1
+//            STextBlock "Label"              size=[31,15]
+//            SOverlay (chevron)              size=[16,16]
+//              SImage (wide-chevron-down)      size=[16,16]
+//
+//    HBox math: SimpleComboBox 36 = 16 (icon) + 4 (gap) + 16 (chevron).
+//               ComboBox       51 = 31 (text) + 4 (gap) + 16 (chevron).
+//               4-px gap is the SHorizontalBox slot autopadding.
+//
+// 2) UE source — StarshipCoreStyle.cpp:1424–1593
+//
+//    "SimpleButton" (= SimpleButtonIconOnly):
+//      Normal      = FSlateNoResource (transparent)
+//      Hovered     = RoundedBox(Dropdown #383838, r=4)
+//      Pressed     = RoundedBox(Dropdown #383838, r=4)
+//      Disabled    = FSlateNoResource (transparent — disabled tint via row)
+//      Foreground  = Foreground / ForegroundHover / ForegroundHover / Foreground
+//      Padding     = FMargin(2, 1, 2, 1) Normal / (2, 2, 2, 0) Pressed
+//
+//    "ComboButton":
+//      Normal      = RoundedBox(Input #0F0F0F, r=4, InputOutline #383838 1px)
+//      Hovered     = RoundedBox(Input #0F0F0F, r=4, Hover #575757 1px)
+//      Pressed     = RoundedBox(Input #0F0F0F, r=4, Hover #575757 1px)
+//      Disabled    = RoundedBox(Dropdown #383838, r=4, DropdownOutline #4C4C4C 1px)
+//      Foreground  = Foreground / ForegroundHover / ForegroundHover / ForegroundHover
+//      Padding     = ComboButtonMargin (8,1,8,1) / Pressed (8,2,8,0)
+//      DownArrow   = wide-chevron-down 16×16
+//
+//    Popover ("ComboBox" / "SimpleComboBox"):
+//      MenuBorderBrush   = RoundedBox(Dropdown #383838, r=0, DropdownOutline #4C4C4C 1px)
+//      MenuBorderPadding = 0
+//      MenuRowPadding    = FMargin(8, 3) for ComboBox / (8, 2) for SimpleComboBox
+//
+//    Row style "ComboBox.Row" (FTableRowStyle, line 1569):
+//      Even/Odd row Normal      = NoResource (popover bg shows through)
+//      Even/Odd row Hovered     = SolidColor(Primary #0070E0)
+//      Active/Inactive Hovered  = SolidColor(Primary #0070E0)
+//      SelectorFocusedBrush     = RoundedBox(Transparent, r=InputFocusRadius=4,
+//                                            Select #0070E0, InputFocusThickness=1)
+//      TextColor                = White
+//      SelectedTextColor        = White
+//
+//    "Previously-selected" indicator visible in
+//    UnrealInsights_Widgets_SimpleComboBox2.png on Option A Three:
+//      pixel-measured ring is 110×19 px, inset 3 px from each popover side
+//      (popover inner 116 px wide), 1 px Select #0070E0, radius 4.
+//      Replicate via outline+outline-offset to keep layout untouched.
+//
+// Slate flips state colours instantly — no transition declarations
+// (memory: feedback_no_transitions.md).
+// ============================================================================
+
+@use "variables" as *;
+
+.ss-combo {
+  position: relative;
+  display: inline-block;
+  vertical-align: middle;
+  font-family: var(--ss-font);
+  font-size: var(--ss-font-size);
+  font-weight: var(--ss-weight);
+  line-height: 1;
+  color: var(--ss-foreground);
+}
+
+// ----- Trigger (closed state) ------------------------------------------------
+//
+// Default = ComboButton style. Outer 67×22 with 8 px h / 1 px v padding.
+// SHorizontalBox content fills 51×20: text 31×15 + 4 px gap + chevron 16×16.
+.ss-combo__trigger {
+  // Resets for native <button>
+  appearance: none;
+  -webkit-appearance: none;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  user-select: none;
+  text-align: left;
+
+  // Layout: HBox (text [+ chevron-overlay]) inside outer button.
+  // Asymmetric vertical padding mirrors ComboButtonMargin(8,1,8,1) Normal
+  // and PressedComboButtonMargin(8,2,8,0). With box-sizing: border-box
+  // and a fixed 22 px outer height, content shifts +1 px down on press —
+  // matches Slate's button-press idiom (same trick as .ss-btn--simple).
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 22px;
+  padding: 1px 8px;
+  box-sizing: border-box;
+  min-width: 67px;          // matches the gallery's "Label" trigger; users may override
+
+  // ComboButton brush — Input bg + InputOutline ring, radius 4.
+  background: var(--ss-input);
+  border: 1px solid var(--ss-input-outline);
+  border-radius: var(--ss-radius);
+
+  &:hover {
+    border-color: var(--ss-hover);
+    color: var(--ss-foreground-hover);
+  }
+
+  // Pressed = same border swap, content shifts +1 px down via padding.
+  // No `.is-open` styling — when the popover is open and the cursor moves
+  // off the trigger onto the menu rows, the trigger must return to Normal
+  // (Chromium does drop :hover off the trigger as soon as the cursor leaves
+  // its box, so leaving the styling to :hover gives the correct behaviour).
+  &:active {
+    border-color: var(--ss-hover);
+    color: var(--ss-foreground-hover);
+    padding: 2px 8px 0;
+  }
+
+  // The native :focus outline would compete with the border swap. Slate
+  // doesn't draw a focus ring on combo triggers — kill the browser default.
+  &:focus-visible {
+    outline: none;
+    border-color: var(--ss-hover);
+    color: var(--ss-foreground-hover);
+  }
+
+  // Disabled — Slate's ComboButton SetDisabled brush is
+  //   RoundedBox(Dropdown #383838, r=4, DropdownOutline #4C4C4C, 1px)
+  // applied at α=0.45 over the page background per Slate's cumulative
+  // disabled-tint rule (pixel-verified against UnrealInsights_Widgets_Disabled.png).
+  &:disabled,
+  &[aria-disabled="true"] {
+    cursor: not-allowed;
+    pointer-events: none;
+    background: rgba(56, 56, 56, 0.45);   // Dropdown × 0.45
+    border-color: rgba(76, 76, 76, 0.45); // DropdownOutline × 0.45
+    color: rgba(255, 255, 255, 0.45);     // ForegroundHover × 0.45
+    padding: 1px 8px;                     // lock to Normal padding (no press-shift)
+  }
+}
+
+// ----- Trigger label (text) --------------------------------------------------
+.ss-combo__label {
+  flex: 1 1 auto;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+// ----- Leading icon (16×16) — used by SimpleComboBox icon-only trigger -----
+.ss-combo__icon {
+  flex: 0 0 16px;
+  width: 16px;
+  height: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: inherit;
+
+  svg {
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
+}
+
+// ----- Chevron-down icon (16×16) --------------------------------------------
+//
+// Painted via CSS mask of an inline Lucide `chevron-down` path (MIT). End
+// user markup is just `<span class="ss-combo__chevron"></span>` — no inner
+// SVG, no sprite dependency. `background-color: currentColor` makes the
+// chevron pick up the button's text colour automatically.
+.ss-combo__chevron {
+  flex: 0 0 16px;
+  width: 16px;
+  height: 16px;
+  pointer-events: none;
+
+  background-color: currentColor;
+  --ss-chevron-svg: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='m6 9 6 6 6-6'/></svg>");
+  -webkit-mask-image: var(--ss-chevron-svg);
+          mask-image: var(--ss-chevron-svg);
+  -webkit-mask-size: contain;
+          mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+          mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+          mask-position: center;
+}
+
+// ----- SimpleComboBox modifier ----------------------------------------------
+//
+// Borderless icon-only trigger. Outer 40×22, content 36×20 → 2 px h / 1 px v
+// padding. SimpleButton style: transparent until hover/press.
+.ss-combo--simple > .ss-combo__trigger {
+  min-width: 40px;
+  // SimpleButtonIconOnly Normal padding FMargin(2,1,2,1).
+  // Pressed FMargin(2,2,2,0) — content shifts +1 px down on press. Same
+  // border-box + asymmetric padding trick as .ss-btn--simple.
+  padding: 1px 2px;
+  background: transparent;
+  border: none;
+
+  &:hover,
+  &:focus-visible {
+    background: var(--ss-dropdown);    // SimpleButton hovered/pressed brush
+    color: var(--ss-foreground-hover);
+    outline: none;
+  }
+
+  // No `.is-open` rule — cursor leaving the trigger onto the menu must
+  // restore the Normal look (otherwise the button reads as still-pressed).
+  &:active {
+    background: var(--ss-dropdown);
+    color: var(--ss-foreground-hover);
+    padding: 2px 2px 0;
+  }
+
+  // SimpleButton SetDisabled = FSlateNoResource (transparent).
+  // Override base .ss-combo__trigger:disabled (Dropdown × .45) for the
+  // borderless variant — only the foreground gets tinted.
+  &:disabled,
+  &[aria-disabled="true"] {
+    background: transparent;
+    border: none;
+    color: rgba(192, 192, 192, 0.45);     // Foreground × 0.45
+    padding: 1px 2px;                     // lock to Normal padding
+  }
+}
+
+// ----- Popover menu ----------------------------------------------------------
+//
+// Uses the native HTML5 Popover API: trigger has [popovertarget="<id>"], the
+// menu has [popover] + matching id. We anchor the menu to the trigger via
+// CSS Anchor Positioning (Chromium 125+). For the showcase a tiny demo.js
+// snippet handles the open-state class on the trigger.
+.ss-combo__menu {
+  // Override the browser's default UA popover styles (margin:auto centering,
+  // border, padding). We paint the chrome ourselves.
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--ss-dropdown-outline);    // #4C4C4C
+  border-radius: 0;                                // square corners (source: r=0)
+  background: var(--ss-dropdown);                  // #383838
+  color: var(--ss-foreground-hover);
+  font: inherit;
+  list-style: none;
+  min-width: 118px;     // SimpleComboBox popover width from PNG; ComboBox grows naturally
+  max-height: 50vh;
+  overflow-y: auto;
+  box-sizing: border-box;
+  // Prevent layout-shift from the default popover :modal-like behaviour.
+  inset: unset;
+
+  // CSS Anchor Positioning — chains the menu's top-left to the trigger's
+  // bottom-left. Falls back gracefully on browsers without anchor support
+  // (the menu opens at the viewport top-left until JS positions it).
+  position: absolute;
+  position-try-fallbacks: flip-block;
+  top: anchor(bottom);
+  left: anchor(left);
+}
+
+// ----- Menu row --------------------------------------------------------------
+//
+// One <button class="ss-combo__option"> per OptionsSource entry. Default
+// row height differs between the two variants (MenuRowPadding 8,3 vs 8,2).
+.ss-combo__option {
+  appearance: none;
+  -webkit-appearance: none;
+  display: block;
+  width: 100%;
+  height: 21px;                       // ComboBox MenuRowPadding (8, 3) → 15+3+3
+  padding: 0 8px;
+  background: transparent;            // Even/Odd Normal = NoResource
+  color: var(--ss-foreground-hover);  // ComboBoxRow.TextColor = White
+  font: inherit;
+  font-size: var(--ss-font-size);
+  line-height: 1;
+  text-align: left;
+  border: 0;
+  border-radius: 0;
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  &:hover {
+    background: var(--ss-primary);    // Hovered/Selected = Primary #0070E0
+    color: var(--ss-white);
+  }
+
+  // SelectorFocusedBrush — thin Select-coloured ring inset 3 px from each
+  // popover side, radius 4. Replicate via outline (no layout impact).
+  // Skip on hover — full Primary fill takes over.
+  &[aria-selected="true"]:not(:hover) {
+    outline: 1px solid var(--ss-select);
+    outline-offset: -4px;
+    border-radius: var(--ss-radius);
+  }
+}
+
+// SimpleComboBox row height — MenuRowPadding (8, 2) → 15+2+2 = 19 px.
+.ss-combo--simple .ss-combo__option {
+  height: 19px;
+}

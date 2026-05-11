@@ -1,0 +1,287 @@
+// ============================================================================
+// _menu.scss — MenuBar + pull-down menus + submenus.
+//
+// Slate styles (StarshipCoreStyle.cpp:2437-2598):
+//
+//   WindowMenuBar.Background        : no resource (transparent)
+//   WindowMenuBar.Button (MenuBarButton)
+//     normal:    bg none,  fg Foreground
+//     hovered:   bg Hover, fg ForegroundHover
+//     submenu-open / pressed: bg Primary, fg ForegroundHover
+//     padding:   FMargin(0, 2) normal, FMargin(0, 3, 0, 1) pressed
+//   WindowMenuBar.MenuBar.Padding   : FMargin(12, 4)
+//
+//   Menu.Background                 : Dropdown (#383838)
+//   Menu.Outline                    : DropdownOutline (#4C4C4C) 1 px
+//   Menu.Block.Padding              : FMargin(12, 1, 5, 1)
+//   Menu.Block.IndentedPadding      : + FMargin(18, 0, 0, 0)  (when icon col)
+//   Menu.MenuIconSize               : 14
+//   Menu.SubMenuIndicator           : chevron-right 16 × 16 Foreground
+//   Menu.Heading                    : Bold 7 pt, letter-spacing 250 UE units,
+//                                     colour White25
+//   Menu.Heading.Padding            : FMargin(12, 6, 12, 6)
+//   Menu.Separator                  : White25
+//   Menu.Separator.Padding          : FMargin(12, 6, 12, 6)
+//   Menu.Button (entries)
+//     normal:    bg none
+//     hovered/pressed: bg Primary, fg ForegroundHover
+//
+// JS is wired by initMenus() in starship.js — click-driven open/close
+// matching Slate's pull-down behaviour (no hover-open). Submenus anchor
+// to the parent entry and open to the right.
+//
+// Markup:
+//   <nav class="ss-menubar" aria-label="…">
+//     <button class="ss-menubar__item" data-menu-target="menu-1"
+//             aria-haspopup="menu" style="anchor-name: --menu-1;">Menu 1</button>
+//     <button class="ss-menubar__item" data-menu-target="menu-2"
+//             aria-haspopup="menu" style="anchor-name: --menu-2;">Menu 2</button>
+//   </nav>
+//   <div class="ss-menu" popover="manual" id="menu-1"
+//        role="menu" style="position-anchor: --menu-1;">
+//     <div class="ss-menu__heading">Menu Header 1</div>
+//     <button class="ss-menu__entry" type="button" role="menuitem">
+//       <span class="ss-menu__icon">{svg}</span>
+//       <span class="ss-menu__label">Menu Entry 1</span>
+//     </button>
+//     ...
+//     <button class="ss-menu__entry" data-menu-target="submenu-1"
+//             aria-haspopup="menu" style="anchor-name: --submenu-1;">
+//       <span class="ss-menu__icon"></span>
+//       <span class="ss-menu__label">Sub Menu 1</span>
+//       <span class="ss-menu__chevron">{svg}</span>
+//     </button>
+//   </div>
+// ============================================================================
+
+@use "variables" as *;
+
+// ----- Menu bar (horizontal strip of pull-down triggers) -------------------
+
+.ss-menubar {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;                 // WindowMenuBar.MenuBar.Padding (12, 4)
+  background: transparent;           // WindowMenuBar.Background = NoResource
+  gap: 0;
+}
+
+.ss-menubar__item {
+  appearance: none;
+  -webkit-appearance: none;
+  display: inline-flex;
+  align-items: center;
+  height: 23px;
+  // Reflector (menu.widgetsnapshot) — SMenuEntryBlock 66×23 wrapping a
+  // STextBlock 42×15 → 12 px of horizontal padding per side, NOT the
+  // `FMargin(0, 2)` source literal (which is the SButton's internal
+  // padding only; MultiBox.cpp wraps each entry in an additional
+  // 12-px box). Lock to 12 to match the UE pixel measurement.
+  padding: 0 12px;
+  background: transparent;
+  border: 0;
+  color: var(--ss-foreground);
+  font: inherit;
+  font-size: var(--ss-font-size);
+  cursor: pointer;
+
+  &:hover {
+    background: var(--ss-hover);     // MenuBarButton hovered = Hover
+    color: var(--ss-foreground-hover);
+  }
+
+  // Slate paints the trigger with Primary while its submenu is open
+  // ("WindowMenuBar.Button.SubMenuOpen" = Primary). aria-expanded is the
+  // ARIA convention and is set by initMenus() in starship.js.
+  &[aria-expanded="true"] {
+    background: var(--ss-primary);
+    color: var(--ss-foreground-hover);
+  }
+
+  &:disabled,
+  &[aria-disabled="true"] {
+    color: rgba(192, 192, 192, 0.45);
+    cursor: not-allowed;
+
+    &:hover { background: transparent; }
+  }
+}
+
+// ----- Menu popup ----------------------------------------------------------
+
+// Menu's built-in search filter. UE wraps every pull-down menu's contents
+// in an SSearchBox — pill-shaped editable text with the glass icon, NOT
+// a plain SEditableTextBox. Apply this class to the .ss-search wrapper
+// so it sits inset from the menu edges with a slim top/bottom margin.
+.ss-menu__search {
+  display: block;
+  margin: 4px 4px 6px;
+  width: calc(100% - 8px);
+}
+
+.ss-menu {
+  position: absolute;
+  margin: 0;
+  padding: 4px 0;
+  // Default popover UA stylesheet leaves the element at its block-direction
+  // intrinsic size (= containing-block width) — set explicit max-content so
+  // the menu sizes to its longest entry instead of spanning the viewport.
+  width: 200px;
+  max-width: 90vw;
+  height: auto;
+  background: var(--ss-dropdown);                          // Menu.Background
+  border: 1px solid var(--ss-dropdown-outline);            // Menu.Outline
+  border-radius: 0;                                        // 0 in source
+  color: var(--ss-foreground);
+  font-size: var(--ss-font-size);
+  line-height: 1;
+  inset: unset;                                            // override popover UA inset:0
+  display: block;                                          // explicit, popover default = block
+
+  // Default anchor pose — menu opens BELOW the trigger, left-aligned (used
+  // by the menubar pull-down). Submenu modifier below flips to right-of.
+  position-try-fallbacks: flip-block;
+  top: anchor(bottom);
+  left: anchor(left);
+
+  &:not(:popover-open) {
+    display: none;
+  }
+
+  // Submenu — opens to the RIGHT of the parent entry, top-aligned.
+  &--submenu {
+    position-try-fallbacks: flip-inline;
+    top: anchor(top);
+    left: anchor(right);
+  }
+}
+
+.ss-menu__heading {
+  // Menu.Heading: Bold 7 pt → 9 px on web; letter-spacing 250 UE units ≈
+  // +0.06em on Web; colour White25. Trailing thin separator extending to
+  // the right edge of the menu, painted by the ::after pseudo (UE Slate
+  // pattern — text on left, hairline ruler on right).
+  display: flex;
+  align-items: center;
+  padding: 6px 12px;                                       // Heading.Padding
+  font-size: 9px;
+  font-weight: var(--ss-weight-bold);
+  letter-spacing: 0.06em;
+  color: var(--ss-white-25);
+  text-transform: uppercase;
+
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    margin-left: 8px;
+    background: var(--ss-white-25);
+  }
+}
+
+.ss-menu__separator {
+  height: 1px;
+  margin: 6px 12px;                                        // Separator.Padding
+  background: var(--ss-white-25);                          // Menu.Separator
+}
+
+.ss-menu__entry {
+  appearance: none;
+  -webkit-appearance: none;
+  display: flex;
+  align-items: center;
+  // Reflector (editor.widgetsnapshot, SSubMenuButton at SMenuEntryBlock.cpp:915):
+  //   outer entry 336×22 — height 22 (not 23)
+  //   inner row 319×16  — entry padding L 12 + R 5, T 3 + B 3
+  //   left section 296  — = SLinkedBox 0 (check) + slot gap 12 + label area 284
+  //   label area 284    — = icon col 16 + gap 16 + label 252
+  // The check-column gap (12) is always reserved even when no checkable
+  // entry is present, so the effective entry padding-left = 12 + 12 = 24.
+  // gap 16 between flex items matches the icon-to-label gap from
+  // SHorizontalBox(845)'s slot padding.
+  gap: 16px;
+  width: 100%;
+  height: 22px;
+  padding: 3px 5px 3px 24px;
+  background: transparent;
+  border: 0;
+  // MenuButton (StarshipCoreStyle.cpp:2567-2574) inherits from `NoBorder`
+  // (line 232-240), which sets NormalForeground = ForegroundHover
+  // (#FFFFFF) for every state and is NOT overridden in MenuButton →
+  // every menu entry paints its text in WHITE on idle, NOT Foreground
+  // (#C0C0C0). The hover/press fills (Primary blue) keep the same white
+  // text. This differs from MenuBarButton (line 2584-2589) which DOES
+  // override NormalForeground back to Foreground, so the menubar reads
+  // gray in idle and white only when hovered/open.
+  color: var(--ss-foreground-hover);
+  font: inherit;
+  font-size: var(--ss-font-size);
+  cursor: pointer;
+  text-align: left;
+  // Don't bleed beyond the menu's bordered edge.
+  box-sizing: border-box;
+
+  &:hover {
+    background: var(--ss-primary);                         // Menu.Button hover
+    color: var(--ss-foreground-hover);
+  }
+
+  // Open submenu — visually identical to hover (Slate paints the parent
+  // entry with Primary while the submenu popover is open).
+  &[aria-expanded="true"] {
+    background: var(--ss-primary);
+    color: var(--ss-foreground-hover);
+  }
+
+  &[aria-disabled="true"] {
+    color: rgba(192, 192, 192, 0.45);
+    cursor: default;
+
+    &:hover { background: transparent; color: rgba(192, 192, 192, 0.45); }
+  }
+}
+
+// Icon column is 16×16 (SBox 851) with a 14×14 image (Menu.MenuIconSize)
+// centered inside — 1 px of padding around the glyph. Keep the column at
+// 16 so the icon-to-label gap (entry's flex gap) lines up with the UE
+// Reflector measurement; the inner SVG is locked to 14×14.
+.ss-menu__icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: inherit;
+
+  svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+}
+
+.ss-menu__label {
+  flex: 1;
+  white-space: nowrap;
+}
+
+// Submenu indicator — Lucide `chevron-right` painted via CSS mask. End-user
+// markup is `<span class="ss-menu__chevron"></span>` (no inner SVG).
+// Reflector: chevron image 16×16. `margin-left: auto` pushes it to the
+// entry's right edge, with the entry's 5 px right padding becoming the
+// visual gap from the menu border.
+.ss-menu__chevron {
+  width: 16px;
+  height: 16px;
+  margin-left: auto;
+  flex-shrink: 0;
+  pointer-events: none;
+
+  background-color: currentColor;
+  --ss-chevron-svg: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='m9 18 6-6-6-6'/></svg>");
+  -webkit-mask-image: var(--ss-chevron-svg);
+          mask-image: var(--ss-chevron-svg);
+  -webkit-mask-size: contain;
+          mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+          mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+          mask-position: center;
+}

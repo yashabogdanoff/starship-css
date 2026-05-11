@@ -1,0 +1,365 @@
+/* ============================================================================
+   docs.css — showcase chrome for pages/.
+   Not framework code — styles the showcase site itself (top-bar, swatches,
+   tab-strip). Framework classes use the ss- prefix and live in
+   ../dist/starship.css.
+   ============================================================================ */
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--ss-background);
+  color: var(--ss-foreground);
+  font-family: var(--ss-font);
+  font-size: var(--ss-font-size);
+  line-height: var(--ss-line);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  color: var(--ss-highlight);
+  text-decoration: none;
+}
+a:hover {
+  color: var(--ss-foreground-hover);
+}
+
+/* Page-tab styling now lives in src/scss/_tabs.scss (`.ss-tab` /
+   `.ss-tabs` / `.ss-tab-well` / `.ss-tab-panel`). The framework provides:
+
+     - Major tab (default `.ss-tab`)            — "Starship Gallery"
+     - Minor tab modifier `.ss-tab--minor`      — Colors / Text / Icons /
+                                                   Widgets / Lists
+     - Major panel (default `.ss-tab-panel`)    — Background bg
+     - Minor panel `.ss-tab-panel--minor`       — Panel bg
+     - Close-button wiring via `initTabs()` in starship.js
+
+   The framework intentionally ships zero inner padding on `.ss-tab-panel`
+   — content layout is the consumer's job. Inside each gallery page we wrap
+   the showcase content with `.gallery-content`, which carries the chrome-
+   only padding/max-width below. */
+
+.gallery-content {
+  /* Pixel-measured against the UE reference: gallery content starts at
+     x=58 in the 1920px reference. Centred max-width + 48px side-padding
+     lands close enough. Gallery scaffolding only — not a framework rule. */
+  padding: 24px 48px 48px;
+  max-width: 1920px;
+  margin: 0 auto;
+}
+
+/* ----- swatch grid (color reference cards) -------------------------------- */
+/* Byte-exact translation of SStarshipGallery::ConstructColorsGallery():
+     SBox.Padding(8).WidthOverride(120).HeightOverride(100)
+       SBorder rounded 6px, optional 1px outline (Colors.Foldout = #0F0F0F)
+       SOverlay.Padding(12)
+         STextBlock(SmallFontBold = Roboto Bold 8pt = 11px) → name
+         STextBlock(SmallFont     = Roboto Reg  8pt = 11px) → hex
+   Cards have NO drop-shadow — they're flat FSlateRoundedBoxBrushes.
+   Section headers use default STextBlock font (NormalText = Roboto Reg 10pt
+   = 13px) with color "Colors.White50" → rgba(255,255,255,0.5).
+   Layout uses SUniformWrapPanel which wraps a uniform grid of items. */
+
+.swatch-section {
+  /* SVerticalBox::Slot.Padding(8.f, 24.f, 8.f, 8.f) for the header slot;
+     content slot has no padding. We collapse to 24px before each section. */
+  margin-bottom: 0;
+}
+.swatch-section + .swatch-section {
+  margin-top: 16px;
+}
+.swatch-section__title {
+  font-size: var(--ss-font-size);          /* 13px (NormalText default) */
+  font-weight: var(--ss-weight);           /* 400 — neutral default */
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  /* "Colors.White50" lookup in source falls back to Foreground (#C0C0C0)
+     in the running gallery — pixel-confirmed against the reference. */
+  color: var(--ss-foreground);
+  margin: 24px 8px 8px;
+  padding: 0;
+}
+
+/* Cross-OS font-weight compensation lives in src/scss/_variables.scss as a
+   :root.ss-os-win override of --ss-weight / --ss-weight-bold. Anything that
+   uses var(--ss-weight) or var(--ss-weight-bold) (which is what every rule
+   on this page does) gets the right per-OS weight automatically. */
+
+.swatch-grid {
+  display: flex;
+  flex-wrap: wrap;
+  /* UE wraps each card in SBox.Padding(8) (size 120 × 100, colored card 104 × 84
+     centered with 8 px around). Reflector confirms BASE wrap panel is 200 px
+     tall (= 8 + 84 + 16 + 84 + 8) for two rows of cards. We collapse that to
+     a flex grid with 16 px gap between cards and 8 px padding on all sides
+     of the panel — same visual: title-bottom-to-first-card-top = 16 px,
+     last-card-bottom-to-next-title = 32 px (8 grid bottom + 24 title margin). */
+  gap: 16px;
+  padding: 8px;
+}
+
+.swatch {
+  /* Source says SBox.WidthOverride(120).HeightOverride(100), but in the
+     user's UE Insights screenshot at 1920×1080 the cards render as
+     104×84 (pixel-measured). Likely a Slate UI scale of ~0.87.
+     We target the rendered visual, not the source literal. */
+  width: 104px;
+  height: 84px;
+  border-radius: 6px;
+  padding: 12px;                            /* SOverlay.Padding(12) */
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;                /* VAlign_Bottom on both slots */
+  flex-shrink: 0;
+  color: #FFFFFF;                           /* Colors.White (default) */
+  /* No drop-shadow — Slate's FSlateRoundedBoxBrush is a flat fill. */
+}
+.swatch--inverted {
+  /* Inverted=true in source → text uses Colors.Background = #151515 */
+  color: #151515;
+}
+.swatch--outlined {
+  /* Outline=true in source → 1px Colors.Foldout (#0F0F0F) ring.
+     Used only on cards whose fill matches the page bg (BACKGROUND, ACCENT BLACK). */
+  outline: 1px solid var(--ss-foldout);
+  outline-offset: -1px;
+}
+
+.swatch__name {
+  /* SmallFontBold = Roboto Bold 8pt → 11px on web at 96 DPI. We tried 10px
+     to match UE Insights' 0.87× UI-scale rendering, but the glyph row count
+     dropped from 8 to 7 and ink-mean fell -5 below UE. 11px lands the row
+     count at 8 (same as UE) — the canonical web mapping is correct here. */
+  font-size: 11px;
+  font-weight: var(--ss-weight-bold);
+  line-height: 1.15;
+  text-transform: uppercase;
+  letter-spacing: 0;
+  /* UE NAME and HEX touch (Reflector: NAME y-end = HEX y-start). No margin. */
+  margin: 0;
+  white-space: pre-line;                    /* honour explicit \n in label text */
+}
+.swatch__hex {
+  /* SmallFont = Roboto Regular 8pt → 11px (same row-count rationale). */
+  font-size: 11px;
+  font-weight: var(--ss-weight);
+  line-height: 1.15;
+  letter-spacing: 0;
+}
+
+/* ----- legacy section helpers (used in non-Colors tabs) -------------------- */
+
+.gallery-section { margin-bottom: 56px; }
+.gallery-section__title {
+  font-size: var(--ss-font-size-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ss-foreground);
+  opacity: 0.75;
+  font-weight: var(--ss-weight);
+  margin: 0 0 16px;
+}
+.gallery-section__subtitle {
+  font-size: var(--ss-font-size-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ss-foreground);
+  margin: 24px 0 8px;
+}
+.gallery-section__placeholder {
+  border: 1px dashed var(--ss-input-outline);
+  padding: 24px;
+  color: var(--ss-foreground);
+  opacity: 0.6;
+  font-size: var(--ss-font-size-sm);
+}
+
+/* ----- type specimens (Text tab) ------------------------------------------ */
+/* Byte-exact translation of SStarshipGallery::ConstructTextGallery() at 1.0×
+   LayoutScale (Reflector text-tab snapshot confirms — earlier 0.87× was a
+   misreading from Colors-tab pixel measurement):
+     SBorder.Padding(48)
+       SHorizontalBox
+         +Slot.AutoWidth.Padding(64, 0)   ← Col 1 (Regular)
+           +SVerticalBox
+             +Slot.Padding(0, 64, 0, 4) → meta label  (h=15)
+             +Slot.Padding(0, 4)        → STextBlock NormalText  (h=75 = 5×15)
+             +Slot.Padding(0, 64, 0, 4) → meta label
+             +Slot.Padding(0, 4)        → STextBlock SmallFont   (h=65 = 5×13)
+         +Slot.AutoWidth.Padding(64, 0)   ← Col 2 (Bold)
+         +Slot.AutoWidth.Padding(64, 0)   ← Col 3 (Sub-typefaces, 5 slots)
+   Body STextBlocks pass multi-line strings with embedded "\n\n" — render
+   with white-space: pre-line so empty lines map to blank rows at the same
+   line-height. Meta label colour "Colors.White50" resolves to Foreground
+   #C0C0C0 in the running gallery (the White50 token falls back, pixel- and
+   Reflector-confirmed: foreground RGB [192,192,192]). */
+
+.gallery-text-grid {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: flex-start;
+  padding: 48px;                            /* SBorder.Padding(48) — 1.0× */
+}
+
+.gallery-text-col {
+  /* SHorizontalBox::Slot.AutoWidth + Padding(64, 0) */
+  display: flex;
+  flex-direction: column;
+  padding: 0 64px;
+  flex: 0 0 auto;
+}
+
+.gallery-text-section {
+  /* Each meta-slot has Padding(0, 64, 0, 4) and each sample-slot has
+     Padding(0, 4) in source. We model that with section padding (64 top,
+     4 bottom) + flex gap 8 between meta/sample inside the section. Padding
+     instead of margin avoids margin-collapse (which was eating 4 px from
+     every meta→sample gap). Inter-section gap = 4 (sample bottom of prev
+     section's padding) + 64 (next section's top padding) = 68 ✓ Reflector. */
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 64px 0 4px;
+}
+
+.gallery-text-section__meta {
+  color: var(--ss-foreground);              /* Colors.Foreground #C0C0C0 */
+  font-size: var(--ss-font-size);           /* 13 px = NormalText */
+  font-weight: var(--ss-weight);            /* 400 */
+  line-height: 15px;                        /* Reflector: STextBlock h=15 */
+  margin: 0;
+  letter-spacing: 0;
+}
+
+.gallery-text-section__sample {
+  /* Body STextBlock with no override = NormalText, Foreground colour.
+     Section's flex gap 8 handles spacing both meta→sample and sample→sample
+     (col 3's emoji + supplemental case). */
+  color: var(--ss-foreground);
+  font-size: var(--ss-font-size);           /* 13 */
+  font-weight: var(--ss-weight);            /* 400 */
+  line-height: 15px;                        /* 5 lines × 15 = 75 (Reflector) */
+  margin: 0;
+  white-space: pre-line;
+  letter-spacing: 0;
+}
+
+.gallery-text-section--small .gallery-text-section__sample {
+  /* SmallFont = DEFAULT_FONT("Regular", 8) → 8 pt = 11 px.
+     Reflector small-sample h = 65 = 5 lines × 13. */
+  font-size: var(--ss-font-size-sm);
+  line-height: 13px;
+}
+
+.gallery-text-section--bold .gallery-text-section__sample {
+  /* NormalFontBold / SmallFontBold = DEFAULT_FONT("Bold", 10|8) */
+  font-weight: var(--ss-weight-bold);
+}
+
+/* Cross-OS compensation: var(--ss-weight) / var(--ss-weight-bold) above
+   already pick up the right OS-specific weight from _variables.scss. */
+
+/* ----- Starship Widgets tab — UE 2-column gallery grid -------------------- */
+/* Byte-exact translation of SStarshipGallery::ConstructWidgetGallery():
+     SGridPanel
+       cell (col=0): Padding(12) HAlign_Left   → SCheckBox (enabled toggle)
+       cell (col=1): Padding(24, 16, 12, 16) HAlign_Right
+                     → STextBlock (NormalFont, Colors.White50)
+       cell (col=2): Padding(12, 16, 12, 16) HAlign_Fill
+                     → SHorizontalBox with 3 widget samples
+   The grid uses Cols=3 and RowCount=15, so the second column-group sits at
+   absolute columns 3,4,5 — same row index in the same SGridPanel. We fold
+   that into two CSS grids side-by-side so the row-pitch in each column-group
+   stays independent (UE's grid auto-sizes rows by tallest-cell-content).
+   Padding values, button widths, and inter-sample gap (25 px, pixel-measured
+   on UnrealInsights_Widgets.png; source HBox slots specify Padding(8, 0))
+   come from the screenshot, not the source — UE Insights renders this tab
+   at 1.0× UI scale (button widths match SU values directly).
+   Meta label colour is `Colors.White50` in source but renders as
+   `Colors.Foreground` (#C0C0C0) in the running gallery — same observation
+   as on the Colors and Text tabs. */
+.gallery-widgets {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  /* No column-gap between the two halves — UE's grid is contiguous. */
+}
+.gallery-widgets__col {
+  display: grid;
+  grid-template-columns: max-content max-content 1fr;
+  align-items: center;
+  align-content: start;
+}
+.gallery-widgets__row { display: contents; }
+.gallery-widgets__cb {
+  /* SGridPanel cell 0: Padding(12) */
+  padding: 12px;
+  display: flex;
+  justify-content: center;
+}
+.gallery-widgets__label {
+  /* SGridPanel cell 1: source Padding(24, 16, 12, 16) LTRB. UE Reflector
+     row pitches vary widely (54-80 px) across the Widgets tab — average
+     is ≈ 64 px (Primary→NumericEntry spans 832 px / 13 rows). Use the
+     average uniformly here; matching UE's per-row variance exactly would
+     require per-row classes, which is overkill for a QA harness. */
+  padding: 19px 12px 19px 24px;
+  text-align: right;
+  color: var(--ss-foreground);              /* renders as #C0C0C0 — see note */
+  font-size: var(--ss-font-size);           /* 13 px — NormalFont */
+  font-weight: var(--ss-weight);            /* 400 */
+  line-height: 1;
+  letter-spacing: 0;
+}
+.gallery-widgets__samples {
+  /* SGridPanel cell 2: source Padding(12, 16, 12, 16) LTRB; bumped via
+     min-height to match UE's average 64 px pitch (see label note). */
+  padding: 19px 12px;
+  display: flex;
+  align-items: center;
+  /* UE SGridPanel rows average 64 px pitch across Primary→NumericEntry.
+     Force every row to this height (= UE Reflector-derived average) so
+     thin widgets (8 px Slider) don't squeeze and tall widgets fit. */
+  min-height: 64px;
+  box-sizing: border-box;
+  /* Inter-sample gap: source has Padding(8, 0) on each HBox slot (sums to
+     16 SU between adjacent buttons). Pixel-measured 25 px on the reference
+     — apply the measured value. */
+  gap: 25px;
+}
+
+/* Right-column sample cell width helper. UE's SGridPanel sizes each cell to
+   the content's FillWidth(1.0) intrinsic ask; the Reflector reports 496 px on
+   every Group 5 widget (SEditableTextBox, SMultiLineEditableText,
+   SMultiLineEditableTextBox, SInlineEditableTextBlock, SSearchBox). The CSS
+   grid would otherwise hand each widget the full 1fr of the right column
+   (~700 px on a 1920 page). This helper caps the sample cell at 496 px and
+   lets `width: 100%` on the widget itself (which `.ss-input` and `.ss-textarea`
+   already declare) snap to that. Gallery-chrome — touches the cell wrapper,
+   never any `.ss-*` selector. */
+.gallery-widgets__samples--w496 {
+  /* 496 widget + 12 L + 12 R sample padding (.gallery-widgets__samples
+     declares padding: 19px 12px). With box-sizing: border-box on every
+     element (set globally at the top of this file), max-width 520 makes
+     the inner content area 496 px wide, and the widget's `width: 100%`
+     snaps to that. */
+  max-width: 520px;
+}
+
+/* Row-disabled paint for widget visuals lives in the framework
+   (`.ss-btn:disabled`, `.ss-segmented:has(input:disabled)`, etc. across
+   src/scss/). The inline <script> in pages/index.html syncs the
+   row checkbox to the native `disabled` attribute on every form control
+   inside .gallery-widgets__samples so those framework selectors fire.
+
+   The only gallery-chrome element that needs its own disabled tint is
+   .gallery-widgets__radio-value — the "3" digit STextBlock to the right
+   of the radio row in the UE Starship Gallery. It's not a Slate widget,
+   so its paint stays here. */
+.gallery-widgets__row:has(.gallery-widgets__samples input:disabled) .gallery-widgets__radio-value {
+  color: rgba(192, 192, 192, 0.45);                   /* Foreground × 0.45 */
+}

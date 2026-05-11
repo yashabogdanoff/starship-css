@@ -1,0 +1,171 @@
+// ============================================================================
+// _segmented.scss — Slate's SSegmentedControl<int32>.
+//
+// Two sources of truth (CLAUDE.md "Visual fidelity workflow"):
+//
+// 1) Widget Reflector snapshot — screenshots/reflector/widgets-tab.widgetsnapshot
+//    at-line 994 (SegmentedControl, 4 text+icon segments):
+//
+//      SSegmentedControl<int32>       size=[357,24]
+//        SBorder                        size=[357,24]      ← BackgroundBrush
+//          SUniformGridPanel              size=[356,24]    ← 1px right pad on grid
+//            SCheckBox                      size=[88,22]   ← segment outer (×4)
+//              SBorder                        size=[88,22] ← per-segment brush
+//                SHorizontalBox                 size=[46,16] (Box content)
+//                  SImage                         size=[16,16]  ← icon
+//                  SSpacer                        size=[8,16]   ← 8 px gap
+//                  STextBlock                     size=[22,15]  ← "Box"
+//            ...repeated for Cylinder (71×16), Pyramid (72×16), Sphere (65×16)
+//
+//    Arithmetic: 1 px left pad + 4 × 88 + 3 × 1 px gap + 1 px right pad = 357 ✓
+//                1 px top pad + 22 + 1 px bottom pad = 24 ✓
+//
+// 2) UE source — StarshipCoreStyle.cpp:1699–1722, SSegmentedControl.h:303–311:
+//
+//    Style "SegmentedControl" (FSegmentedControlStyle):
+//      BackgroundBrush  = RoundedBox(Input #0F0F0F, radius InputFocusRadius=4)
+//      UniformPadding   = FMargin(1)
+//
+//    Per-segment FCheckBoxStyle (SegmentedBoxLeft):
+//      type             = ESlateCheckBoxType::ToggleButton
+//      Unchecked        = FSlateNoResource (transparent — Input bg shows)
+//      UncheckedHovered = RoundedBox(Hover  #575757, r=4)
+//      UncheckedPressed = RoundedBox(Header #2F2F2F, r=4)
+//      Checked          = RoundedBox(Dropdown #383838, r=4)
+//      CheckedHovered   = RoundedBox(Hover  #575757, r=4)
+//      CheckedPressed   = RoundedBox(Header #2F2F2F, r=4)
+//      Foreground       = Foreground #C0C0C0
+//      Hovered / Pressed / Checked FG = ForegroundHover #FFFFFF
+//      Padding          = SegmentedControlMargins(8, 3)  // sets DesiredSize
+//
+//    TextStyle = "SmallButtonText" → ButtonText → NormalText (10pt Regular, #C0C0C0)
+//    Spacer between icon and text = 8 × 1 SU
+//    Starship flips state colours instantly — no CSS transitions (memory note).
+// ============================================================================
+
+@use "variables" as *;
+
+// Reference width per uniform-grid cell (the largest DesiredSize among the four
+// segments — "Pyramid" content 72 + 2 × 8 padding = 88). Exposed as a CSS
+// variable so a user with longer labels can grow segments uniformly.
+.ss-segmented {
+  --ss-seg-cell-w: 88px;
+
+  display: inline-grid;
+  grid-auto-flow: column;
+  grid-auto-columns: var(--ss-seg-cell-w);
+  gap: 1px;
+  padding: 1px;
+  background: var(--ss-input);
+  border-radius: var(--ss-radius);
+  vertical-align: middle;
+  font-family: var(--ss-font);
+  font-size: var(--ss-font-size);
+  line-height: 1;
+
+  // Hidden but focusable native radios drive the :checked state.
+  > input[type="radio"] {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+  }
+
+  &__option {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;                  // matches SSpacer Size(8, 1) between icon & text
+    height: 22px;
+    padding: 0 8px;            // matches SegmentedControlMargins horizontal
+    color: var(--ss-foreground);
+    font-weight: var(--ss-weight);
+    border-radius: var(--ss-radius);
+    background: transparent;   // Unchecked = FSlateNoResource (Input shows)
+    cursor: pointer;
+    user-select: none;
+
+    &:hover {
+      background: var(--ss-hover);
+      color: var(--ss-foreground-hover);
+    }
+
+    &:active {
+      background: var(--ss-header);
+      color: var(--ss-foreground-hover);
+    }
+  }
+
+  &__icon {
+    width: 16px;
+    height: 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    svg {
+      width: 100%;
+      height: 100%;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+  }
+
+  > input[type="radio"]:checked + .ss-segmented__option {
+    background: var(--ss-dropdown);
+    color: var(--ss-foreground-hover);
+
+    &:hover  { background: var(--ss-hover); }
+    &:active { background: var(--ss-header); }
+  }
+
+  // Disabled state — Slate renders every brush layer at α=0.45 cumulative
+  // (pixel-verified against UnrealInsights_Widgets_Disabled.png):
+  //   Panel #242424 + Input α0.45 (control bg)   = #1B1B1B
+  //   Panel + Input α0.45 + Dropdown α0.45 (checked) = #282828
+  //   ForegroundHover #FFFFFF α0.45 (checked text)   → peak R 137 on #282828
+  //   Foreground      #C0C0C0 α0.45 (unchecked text) → peak R 119 on #1B1B1B
+
+  > input[type="radio"]:disabled + .ss-segmented__option {
+    color: rgba(192, 192, 192, .45);
+    cursor: not-allowed;
+  }
+
+  // Whole-control disabled — either explicit aria-disabled on the wrapper or
+  // every radio inside marked disabled (gallery's row toggle uses the latter).
+  &[aria-disabled="true"],
+  &:has(> input[type="radio"]:disabled) {
+    pointer-events: none;
+    background: rgba(15, 15, 15, 0.45);   // Input × 0.45 → composes #1B1B1B
+
+    .ss-segmented__option {
+      color: rgba(192, 192, 192, .45);    // Foreground × 0.45
+      cursor: not-allowed;
+      background: transparent;
+    }
+
+    > input[type="radio"]:checked + .ss-segmented__option {
+      background: rgba(56, 56, 56, 0.45); // Dropdown × 0.45 → composes #282828
+      color: rgba(255, 255, 255, .45);    // ForegroundHover × 0.45
+    }
+  }
+}
+
+// SegmentedControl Alt — icon-only variant. Reflector snapshot
+// at SStarshipGallery.cpp:1020 (Value=2 → Pyramid checked):
+//   SSegmentedControl<int32>  133×24  (4 × 32 + 3 gaps + 2 padding = 133)
+//     ...
+//     SCheckBox × 4           32×22   (cell content = 16×16 icon only)
+//
+// Cell width 32 = 16 (icon) + 2 × 8 (segment horiz padding).
+.ss-segmented--alt {
+  --ss-seg-cell-w: 32px;
+}

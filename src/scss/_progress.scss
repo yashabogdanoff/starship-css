@@ -1,0 +1,163 @@
+// ============================================================================
+// _progress.scss — progress bars.
+//
+// Slate's FProgressBarStyle (StarshipCoreStyle.cpp:561-569):
+//   BackgroundImage = SolidColor(Foldout)
+//   FillImage       = ProgressMarquee tile, FVector2f(20, 12),
+//                     tinted PrimaryHover, ESlateBrushTileType::Horizontal
+//   MarqueeImage    = same as FillImage
+//   EnableFillAnimation = true  ← smooth width interpolation when the
+//                                 driven value changes (data-bound, not a
+//                                 state pseudo, so the no-transitions rule
+//                                 does not apply).
+//
+// Animation source-of-truth — SProgressBar.cpp:541:
+//   MarqueeOffset = fractional part of CurrentTime    // cycles 0→1 / 1 s
+// applied to BOTH the FillImage (line 210) AND the MarqueeImage (line 475):
+//   AnimOffsetX = ImageSize.X * MarqueeOffset         // 20 px shift / s
+// → BOTH determinate fill and marquee mode scroll their diagonal stripes
+//   horizontally at exactly 20 px per 1 s. The determinate fill is not a
+//   static blue rectangle — it's the same scrolling tile, clipped to the
+//   Percent width.
+//
+// Image native size 20×12 → bar height 12 px, stripe tile 20 px wide on x.
+//
+// Markup (determinate):
+//   <div class="ss-progress" role="progressbar"
+//        aria-valuenow="42" aria-valuemin="0" aria-valuemax="100">
+//     <div class="ss-progress__bar" style="width: 42%;"></div>
+//   </div>
+//
+// Markup (marquee / indeterminate):
+//   <div class="ss-progress ss-progress--marquee"
+//        role="progressbar" aria-busy="true"></div>
+// ============================================================================
+
+@use "variables" as *;
+
+// Stripes paint at 45° (UE source PNG slants ↘ top-left → bottom-right, which
+// maps to CSS gradient direction -45deg — gradient axis points top-right
+// → bottom-left, stripes perpendicular).
+//
+// Pixel-derived values from UnrealInsights_Widgets.png (user-confirmed):
+//   • light stripe #0E86FF (PrimaryHover) is 9 px on x → 9 / √2 ≈ 6.36 px
+//     on gradient axis
+//   • dark stripe  #0C7DEE — NOT the Primary token (#0070E0). 11 px on x
+//     to fill out the 20 px tile (9 + 11 = 20 = ImageSize.X) → 14.14 px
+//     full period on gradient axis. Lives inline here; not added to the
+//     global palette because nothing else in the framework uses it.
+@mixin ss-progress-stripes {
+  background-color: #0C7DEE;
+  background-image: repeating-linear-gradient(
+    -45deg,
+    #0E86FF  0,
+    #0E86FF  6.36px,
+    #0C7DEE  6.36px,
+    #0C7DEE 14.14px
+  );
+}
+
+// Stripe scroll = Slate's MarqueeOffset (SProgressBar.cpp:541): 1 cycle = 1 s,
+// shift = ImageSize.X = 20 px on x.
+//
+// Animated via `transform: translateX(-20px)` on an inner pseudo (sized 20 px
+// wider than its container) instead of `background-position`. The transform
+// path is compositor-only — no per-frame layout or paint, no visible repaint
+// blip when the keyframe wraps. background-position animation, by contrast,
+// triggers a paint every frame and produces a noticeable hitch once per
+// second on lower-end GPUs.
+@keyframes ss-progress-marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(20px); }
+}
+
+.ss-progress {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 12px;                     // FillImage native ImageSize.Y
+  background: var(--ss-foldout);    // SolidColor(Foldout)
+  overflow: hidden;
+  // No border, no border-radius — Slate's ProgressBar bg is a flat rect.
+
+  &__bar {
+    position: relative;
+    height: 100%;
+    overflow: hidden;
+
+    // Note: Slate's EnableFillAnimation=true interpolates width on *data*
+    // changes (when the bound value moves from A → B at runtime). It does
+    // not animate the initial mount. A blanket CSS `transition: width …`
+    // here caused a visible artefact at page load. Consumers who need
+    // data-driven smooth fill should set `transition: width …` on their
+    // .ss-progress__bar after initial paint.
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      // Stripes scroll left → right (translateX 0 → +20). Anchor the
+      // pseudo 20 px LEFT of the bar so that as it translates right the
+      // left edge of the bar always stays covered.
+      left: -20px;
+      width: calc(100% + 20px);
+      height: 100%;
+      @include ss-progress-stripes;
+      animation: ss-progress-marquee 1s linear infinite;
+      will-change: transform;
+    }
+  }
+}
+
+// ----- Marquee (indeterminate) ---------------------------------------------
+// Same stripe pattern as the fill, just spanning 100 % of the track. Slate
+// uses the MarqueeImage interchangeably with the FillImage, so the scroll
+// animation is identical.
+
+.ss-progress--marquee {
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -20px;
+    width: calc(100% + 20px);
+    height: 100%;
+    @include ss-progress-stripes;
+    animation: ss-progress-marquee 1s linear infinite;
+    will-change: transform;
+  }
+}
+
+// ----- Disabled ------------------------------------------------------------
+// <div> doesn't carry a native `disabled` attribute. Consumers signal
+// disabled state via aria-disabled="true", which the framework then
+// repaints with Slate's α=0.45 cumulative per-channel tint applied to
+// every brush layer (Foldout bg + the two stripe colours).
+
+// Pixel-derived from UnrealInsights_Widgets_Disabled.png (user-confirmed)
+// against the canonical Panel #242424 parent. These are post-composite
+// hex values, NOT rgba(…, 0.45) overlays:
+//   bg          #1B1B1B (= Foldout × 0.45 over Panel — matches CSS rgba
+//                                   composite too, but hardcoded for parity)
+//   stripe lite #154B82 (post-composite of PrimaryHover × 0.45 over bg)
+//   stripe dark #14477A (post-composite of #0C7DEE × 0.45 over bg)
+//
+// Consumers rendering ProgressBar over a non-Panel surface will get
+// slightly off-target disabled hues; revisit with parent-context-aware
+// tinting if that ever matters.
+
+.ss-progress[aria-disabled="true"] {
+  background-color: #1B1B1B;
+
+  .ss-progress__bar::before,
+  &.ss-progress--marquee::after {
+    background-color: #14477A;
+    background-image: repeating-linear-gradient(
+      -45deg,
+      #154B82  0,
+      #154B82  6.36px,
+      #14477A  6.36px,
+      #14477A 14.14px
+    );
+  }
+}

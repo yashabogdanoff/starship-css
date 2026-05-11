@@ -1,0 +1,362 @@
+// ============================================================================
+// _tabs.scss — SDockTab (MajorTab default + MinorTab modifier).
+//
+// Slate spec (StarshipCoreStyle.cpp:1823-1894 — "Docking.Tab",
+// "Docking.MajorTab", "Docking.Tab.ActiveTabIndicatorColor"):
+//
+//   FDockTabStyle MajorTabStyle = Docking.MajorTab    (TabRole::MajorTab)
+//     Normal           : NoResource                   (transparent)
+//     Hovered          : DockTab_Foreground BOX_BRUSH @ Panel α 0.8
+//     Foreground       : DockTab_Foreground BOX_BRUSH @ Panel
+//     ColorOverlayIcon : FSlateRoundedBoxBrush(Foreground, 4)
+//                        — rounded color square behind the icon
+//     ContentArea      : Background (#151515)
+//     TabPadding       : (4, 4, 10, 4) L T R B
+//     OverlapWidth     : -2
+//     NormalFG         : Foreground (#C0C0C0)
+//     ActiveFG         : White (#FFFFFF)
+//     HoveredFG        : White
+//     IconBorderPadding: 4   — icon container is 4 px bigger than the icon
+//     TabTextStyle     : NormalText (UPPERCASE styling lives in StarshipStyle)
+//
+//   FDockTabStyle MinorTabStyle = Docking.Tab         (TabRole::PanelTab)
+//     ColorOverlayIcon : NoResource                   — no rounded box overlay
+//     ContentArea      : Panel (#242424)
+//     TabPadding       : (4, 3, 10, 4)
+//     ActiveFG         : ForegroundHover (#FFFFFF)
+//     IconBorderPadding: 0                            — icon container = icon
+//     IconSize on web  : 16 (matches Reflector 16 × 16 inside an 18 × 18 SBorder)
+//
+//   Docking.Tab.ActiveTabIndicatorColor = Primary (#0070E0)
+//     SDockTab.cpp:619-646 — SComplexGradient @ VAlign_Top, HAlign_Fill,
+//     DesiredSize 1 × 1, stops [transparent, Primary, transparent].
+//     Visible only while IsForeground() && IsActive().
+//
+//   CloseButton (StarshipCoreStyle.cpp:1813-1816):
+//     SVG  : Starship/Common/close-small (16 × 16)
+//     Norm : Foreground   Hover : ForegroundHover
+//     UE gallery shows the × only on the active tab (revealed on hover for
+//     inactive tabs per SDockTab visibility logic). We match that with CSS.
+//
+// Reflector (widgets-tab.widgetsnapshot, all 5 gallery PanelTabs share dims):
+//     SDockTab outer            160 × 25   (SDockingTabWell equalizes)
+//     SHorizontalBox            146 × 19   (content row, inside TabPadding)
+//       SBorder (icon)          18 × 18    (image 16 × 16 inside)
+//       SHorizontalBox (label)  N × 17
+//       SButton (close)         16 × 18    (svg 16 × 16)
+//
+// Reflector (blueprint.widgetsnapshot, AssetEditorToolkit.cpp:142 — Major tab
+// "BP First Person Character"; sibling MajorTabs in the same well share dims):
+//     SDockTab outer            210 × 31   (SDockingTabWell equalizes to 210)
+//     SHorizontalBox            196 × 24   (content row, inside TabPadding)
+//       SBorder (icon)          24 × 24    (image 16 × 16 inside; IconBorderPadding 4)
+//       SHorizontalBox (label)  N × 17
+//       SButton (close)         16 × 18
+//
+// ----- Authoring model ------------------------------------------------------
+//
+// Pure CSS switching via radio-hack — no JS for tab activation. Markup pattern:
+//
+//   <div class="ss-tabs">
+//     <!-- Radios FIRST; visually hidden — drive :checked combinators. -->
+//     <input class="ss-tabs__input" type="radio" name="<group>" id="ss-t-1" checked>
+//     <input class="ss-tabs__input" type="radio" name="<group>" id="ss-t-2">
+//
+//     <div class="ss-tab-well">
+//       <label for="ss-t-1" class="ss-tab">
+//         <span class="ss-tab__icon"><svg .../></span>     (optional)
+//         <span class="ss-tab__label">Tab One</span>
+//         <button class="ss-tab__close" type="button" aria-label="Close"></button>
+//       </label>
+//       <label for="ss-t-2" class="ss-tab">…</label>
+//     </div>
+//
+//     <section class="ss-tab-panel">…content of ss-t-1…</section>
+//     <section class="ss-tab-panel">…content of ss-t-2…</section>
+//   </div>
+//
+// Default `.ss-tab` paints as a MajorTab. Add `.ss-tab--minor` for panel-level
+// tabs (smaller padding, no icon overlay, Foreground-Hover active text, Panel
+// content bg). The two styles can nest — a Major panel can contain a `.ss-tabs`
+// group whose tabs are `.ss-tab--minor`, exactly how SStarshipGallery composes
+// "Starship Gallery" (Major) over Colors / Text / Icons / Widgets / Lists
+// (Minor).
+//
+// Up to 16 tabs per group are supported by the :checked loop below — raise the
+// loop bound if a consumer needs more.
+//
+// `initTabs()` in starship.js auto-wires `.ss-tab__close`. Clicking × removes
+// the tab's input + label + matching panel from the DOM and activates the
+// nearest remaining sibling. There is no programmatic spawn API yet.
+// ============================================================================
+
+@use "variables" as *;
+
+// ----- Container ------------------------------------------------------------
+
+.ss-tabs {
+  display: block;
+  position: relative;
+}
+
+// Visually hide radio inputs while keeping them in the DOM for `:checked`.
+.ss-tabs__input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+// ----- TabWell --------------------------------------------------------------
+
+.ss-tab-well {
+  display: flex;
+  align-items: flex-end;             // tabs share a common baseline at bottom
+  gap: 2px;                          // OverlapWidth -2 = 2 px gap between tabs
+                                     // (the source comment is explicit:
+                                     //  "Negative Overlap Width to add space
+                                     //   between tabs", StarshipCoreStyle:1836)
+  background: var(--ss-background);  // TabWellBrush = Background
+}
+
+// ----- Tab (default = MajorTab) --------------------------------------------
+
+.ss-tab {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  // No flex `gap` — Reflector shows 5 px between icon and label, but 0 px
+  // between label and close. We model the spacing per-slot: icon owns its
+  // right margin (5), close has `margin-left: auto` to sit flush against
+  // the label's trailing edge.
+  height: 31px;                      // Reflector: outer 210 × 31
+  padding: 4px 10px 4px 4px;         // TabPadding(4, 4, 10, 4) L T R B
+  border-radius: 4px 4px 0 0;        // BOX_BRUSH 4/20 → 4 px, open-bottom
+  background: transparent;           // NormalBrush = NoResource
+  color: var(--ss-foreground);       // NormalFG = Foreground
+  font-size: var(--ss-font-size);
+  line-height: 1;
+  cursor: pointer;
+  user-select: none;
+  box-sizing: border-box;
+
+  // Reflector: every MajorTab in the BP editor's tabwell renders at 210 × 31
+  // regardless of content desired width (149–211 px). Web emulation matches
+  // the minor variant — `flex: 0 1 210px` + `min-width: 0` lets the well
+  // shrink the lot equally when narrower than 210 × N, and the label
+  // ellipsises on overflow.
+  flex: 0 1 210px;
+  min-width: 0;
+
+  &:hover {
+    background: rgba(36, 36, 36, 0.8);   // Panel α 0.8 (Hovered)
+    color: var(--ss-foreground-hover);
+  }
+}
+
+// ----- Slots ----------------------------------------------------------------
+
+// Icon slot. Reflector keeps SBorder 24 × 24 around a 16 × 16 image with
+// IconBorderPadding 4 — we mirror the reserved space but skip the
+// ColorOverlayIconBrush backdrop. In UE the overlay is a per-asset
+// colour-coding strip (Blueprint type indicator, asset class tint); on the
+// web it just reads as an ugly grey square behind every icon. The image
+// itself paints in `currentColor`, inheriting Foreground (idle) →
+// ForegroundHover/White (hover/active).
+.ss-tab__icon {
+  width: 24px;
+  height: 24px;
+  margin-right: 5px;                  // SDockTab.cpp:673 Padding(0, 0, 5, 0)
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+
+  svg {
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+}
+
+.ss-tab__label {
+  white-space: nowrap;
+  // Roboto's descenders (g, p, y) extend ~3 px below the baseline. With
+  // line-height: 1 the line-box equals the font-size and `overflow: hidden`
+  // would crop the bottom of those glyphs. line-height: 1.4 gives the box
+  // enough vertical slack to fit ascenders + descenders intact, and the
+  // flex parent's `align-items: center` keeps the label visually centred.
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+// Close button — × via inline-SVG mask, picks up `color` from the parent so
+// it transitions Foreground → ForegroundHover with the rest of the tab.
+.ss-tab__close {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  margin-left: auto;                 // push to the right edge of the tab
+  border: 0;
+  padding: 0;
+  background-color: currentColor;
+  cursor: pointer;
+  --ss-tab-close: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><line x1='6' y1='6' x2='18' y2='18'/><line x1='6' y1='18' x2='18' y2='6'/></svg>");
+  -webkit-mask-image: var(--ss-tab-close);
+          mask-image: var(--ss-tab-close);
+  -webkit-mask-size: 12px 12px;
+          mask-size: 12px 12px;
+  -webkit-mask-repeat: no-repeat;
+          mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+          mask-position: center;
+
+  visibility: hidden;                // hidden until tab is hovered or active
+
+  &:hover {
+    color: var(--ss-foreground-hover);
+  }
+}
+
+.ss-tab:hover .ss-tab__close {
+  visibility: visible;
+}
+
+// ----- Active tab (radio:checked + sibling combinator) ----------------------
+// The Nth `.ss-tabs__input:checked` activates the Nth `.ss-tab` and reveals
+// the Nth `.ss-tab-panel`. Selectors below cover both Major (default) and
+// Minor variants in the same nth-of-type loop.
+
+@for $i from 1 through 16 {
+  // Active tab background — applies to both Major and Minor.
+  .ss-tabs > .ss-tabs__input:nth-of-type(#{$i}):checked
+            ~ .ss-tab-well > .ss-tab:nth-of-type(#{$i}) {
+    background: var(--ss-panel);
+    color: var(--ss-white);          // MajorTab ActiveFG = White (Minor override below)
+  }
+
+  // Primary-blue 1 px top indicator — Minor only. UE's MajorTab does NOT
+  // paint the active indicator strip (verified against blueprint.widgetsnapshot:
+  // SComplexGradient under MajorTab tabs is 0×0 even when the tab is active,
+  // while the same node sits at 1×1 on active Minor tabs). Source's
+  // Docking.Tab.ActiveTabIndicatorColor is consumed by SDockTab.cpp's
+  // GetActiveTabIndicatorVisibility, which gates visibility on the tab role.
+  .ss-tabs > .ss-tabs__input:nth-of-type(#{$i}):checked
+            ~ .ss-tab-well > .ss-tab--minor:nth-of-type(#{$i})::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 4px;
+    right: 4px;
+    height: 1px;
+    background: linear-gradient(
+      to right,
+      transparent,
+      var(--ss-primary) 50%,
+      transparent
+    );
+    pointer-events: none;
+  }
+
+  // × always visible on the active tab.
+  .ss-tabs > .ss-tabs__input:nth-of-type(#{$i}):checked
+            ~ .ss-tab-well > .ss-tab:nth-of-type(#{$i}) .ss-tab__close {
+    visibility: visible;
+  }
+
+  // Show the matching panel.
+  .ss-tabs > .ss-tabs__input:nth-of-type(#{$i}):checked
+            ~ .ss-tab-panel:nth-of-type(#{$i}) {
+    display: block;
+  }
+}
+
+// ----- Panels ---------------------------------------------------------------
+
+.ss-tab-panel {
+  display: none;
+  background: var(--ss-background);  // MajorTab ContentAreaBrush = Background
+}
+
+// ----- MinorTab variant (Docking.Tab / PanelTab) ----------------------------
+
+.ss-tab--minor {
+  height: 25px;                      // 3 + 19 content + 4 = 26 ≈ 25 in reflector
+  padding: 3px 10px 4px 4px;         // TabPadding(4, 3, 10, 4)
+
+  // Reflector: every PanelTab keeps a 18 × 18 icon SBorder reserved at the
+  // start of the content row, even when the consumer never assigns an icon
+  // (the gallery's Colors / Text / Icons / Widgets / Lists tabs all carry
+  // an empty icon slot). The slot is followed by a 5 px gap before the
+  // label, so text starts at outer-left + 4 + 18 + 5 = 27 px. We mirror
+  // that with a phantom 18 px spacer, only when no `.ss-tab__icon` child
+  // is present.
+  &:not(:has(.ss-tab__icon))::after {
+    content: '';
+    order: -1;                       // ::after but ordered before everything
+    flex: 0 0 18px;
+    margin-right: 5px;
+    pointer-events: none;
+  }
+
+  // Reflector: every PanelTab in the gallery is laid out at 160 × 25 by
+  // SDockingTabWell regardless of content desired width (79–150 px). On the
+  // web we emulate that with `flex: 0 1 160px`:
+  //   * grow 0  — never expand beyond 160 even if the well has spare space
+  //   * shrink 1 — when the well is narrower than `160 × N` all minor tabs
+  //                shrink equally (proportional to their flex-basis)
+  //   * basis 160 — natural width
+  // `min-width: 0` is required to override the flex-item default of
+  // `min-content`, otherwise long labels would refuse to compress below
+  // their intrinsic size. The label itself adds `text-overflow: ellipsis`
+  // so truncation is graceful at narrow widths.
+  flex: 0 1 160px;
+  min-width: 0;
+
+  // Strip the rounded color overlay — Minor tabs paint the icon directly.
+  // Icon → label gap stays at 5 px via `.ss-tab__icon { margin-right: 5px }`
+  // inherited from the global rule.
+  .ss-tab__icon {
+    width: 16px;
+    height: 16px;
+    padding: 0;
+    border-radius: 0;
+    background: transparent;
+
+    svg {
+      stroke: currentColor;          // inherits Foreground / ForegroundHover
+    }
+  }
+}
+
+// Active Minor tab uses ForegroundHover for its label (semantically the
+// "hover-bright" white) rather than the Major's `--ss-white`. Same hex in the
+// default palette, but matches the source-of-truth intent if a consumer
+// overrides --ss-foreground-hover.
+@for $i from 1 through 16 {
+  .ss-tabs > .ss-tabs__input:nth-of-type(#{$i}):checked
+            ~ .ss-tab-well > .ss-tab--minor:nth-of-type(#{$i}) {
+    color: var(--ss-foreground-hover);
+  }
+}
+
+// Minor panel content area paints over Panel — Major paints over Background.
+// Consumers add `.ss-tab-panel--minor` whenever the matching tab is `--minor`.
+.ss-tab-panel--minor {
+  background: var(--ss-panel);
+}
