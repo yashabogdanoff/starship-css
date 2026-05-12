@@ -1,6 +1,6 @@
 {
   "name": "starship-css",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "CSS framework that styles HTML to look like the Unreal Engine 5 editor (Slate UI). Inspired by Unreal Engine — not affiliated with Epic Games.",
   "main": "dist/starship.js",
   "style": "dist/starship.css",
