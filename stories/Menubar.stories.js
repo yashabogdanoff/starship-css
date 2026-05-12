@@ -6,9 +6,14 @@
 let bar = 0;
 function newBar() { return `mb-${++bar}`; }
 
-function menubar({ items }) {
+let menubarCounter = 0;
+function menubar({ items, label = "" }) {
+  // Each <nav> needs a unique aria-label so axe-core's `landmark-unique`
+  // rule is happy when several menubars sit on the same page (Matrix story).
+  const id = ++menubarCounter;
+  const ariaLabel = label || `Menu Bar ${id}`;
   return `
-    <nav class="ss-menubar" aria-label="Menu Bar">
+    <nav class="ss-menubar" aria-label="${ariaLabel}">
       ${items.map((it) => `
         <button class="ss-menubar__item" type="button"
                 ${it.expanded ? 'aria-expanded="true"' : 'aria-expanded="false"'}
@@ -87,7 +92,7 @@ export const Matrix = {
       <div>${menubar({ items: [{ label: "Menu 1", expanded: true }, { label: "Menu 2" }] })}</div>
 
       <div>Hover (Menu 2)</div>
-      <div><nav class="ss-menubar" aria-label="bar">
+      <div><nav class="ss-menubar" aria-label="Menu Bar (hover sample)">
         <button class="ss-menubar__item" type="button">Menu 1</button>
         <button class="ss-menubar__item" type="button" data-state="hover">Menu 2</button>
       </nav></div>

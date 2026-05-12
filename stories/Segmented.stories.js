@@ -63,7 +63,7 @@ export const Matrix = {
       <div>Default</div>
       <div>${defaultSegmented({})}</div>
 
-      <div>Disabled<br><span style="color: var(--ss-white-25); font-size: 10px;">(parent :has)</span></div>
+      <div>Disabled<br><span style="color: var(--ss-foreground-header); font-size: 10px;">(parent :has)</span></div>
       <div>${defaultSegmented({ disabled: true })}</div>
 
       <div>Alt (icon-only)</div>

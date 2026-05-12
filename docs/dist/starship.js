@@ -634,15 +634,21 @@
 
   // ----- Toggle button (aria-pressed) --------------------------------------
   //
-  // .ss-btn--toggle paints itself via the [aria-pressed] selector but
-  // browsers don't toggle the attribute on click for plain <button>s —
-  // that's an authored behaviour. This helper flips aria-pressed between
-  // "true" and "false" on every click, mirroring Slate's IsToggled state.
-  // Buttons that are disabled (or aria-disabled) are skipped.
+  // Toolbar toggle buttons (`<button class="ss-toolbar__btn--toggle">` and
+  // `<button class="ss-toolbar__split-btn--toggle">`) paint via the
+  // `[aria-pressed]` selector. Browsers don't flip the attribute on click
+  // for plain `<button>` elements — that's authored behaviour. This helper
+  // flips aria-pressed between "true" and "false" on every click,
+  // mirroring Slate's IsToggled state. Buttons that are disabled
+  // (or aria-disabled) are skipped.
   // Idempotent — re-running ignores buttons that already carry the marker.
+  //
+  // `.ss-btn--toggle` is intentionally NOT handled here: it's a CSS-only
+  // widget built on `<label>` + hidden `<input type="checkbox">` + `:has()`,
+  // and `aria-pressed` is not a valid ARIA attribute on `<label>` (axe
+  // flags it as critical).
   function initToggleButtons() {
     var buttons = document.querySelectorAll(
-      '.ss-btn--toggle:not([data-ss-inited]),' +
       '.ss-toolbar__btn--toggle:not([data-ss-inited]),' +
       '.ss-toolbar__split-btn--toggle:not([data-ss-inited])'
     );

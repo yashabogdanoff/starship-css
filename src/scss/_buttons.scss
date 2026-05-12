@@ -207,24 +207,23 @@
 // ----- Toggle (checkbox styled as toggle) ----------------------------------
 // Slate's ToggleButtonCheckbox: no outline, ToggleButtonMargins(16, 2),
 // checked = Primary fill, unchecked = transparent → hover Dropdown.
-
-// Two equivalent markups are supported:
 //
-//   1. CSS-only (preferred — no JS needed):
-//        <label class="ss-btn ss-btn--toggle">
-//          <input type="checkbox" class="ss-toggle__input">
-//          Mute
-//        </label>
-//      The hidden <input> holds the state; clicking the label toggles it
-//      natively (standard HTML), `:has(input:checked)` paints the pressed
-//      look. Keyboard: Tab focuses the input, Space toggles.
+// Markup (CSS-only, no JS needed):
 //
-//   2. Legacy (requires `Starship.initToggleButtons()` from starship.js):
-//        <button class="ss-btn ss-btn--toggle" aria-pressed="false">Mute</button>
-//      JS flips `aria-pressed` on click; the `[aria-pressed="true"]`
-//      selector paints the pressed look.
+//   <label class="ss-btn ss-btn--toggle">
+//     <input type="checkbox" class="ss-toggle__input">
+//     Mute
+//   </label>
 //
-// Both selectors fire the same paint rules below.
+// The hidden <input> holds the state; clicking the label toggles it natively
+// (standard HTML), `:has(input:checked)` paints the pressed look. Keyboard:
+// Tab focuses the input, Space toggles. `:focus-within` on the label paints
+// the focus ring exactly when the input is focused.
+//
+// Note: `aria-pressed` is NOT used here — `<label>` doesn't accept it (and
+// axe-core flags it as critical). The toolbar's `.ss-toolbar__btn--toggle`
+// uses `<button aria-pressed>` because that's the right semantic for a
+// `<button>` element.
 .ss-btn--toggle {
   // ToggleButtonMargins(16, 2) — source canonical AND Reflector-confirmed.
   // No outline → outer 63×20 for text, 48×20 for icon-only. Asymmetric
@@ -266,7 +265,6 @@
     padding: 3px 16px 1px;               // Toggle has no press-shift
   }
 
-  &[aria-pressed="true"],
   &:has(> .ss-toggle__input:checked) {
     background: var(--ss-primary);       // CheckedImage = Primary
     color: var(--ss-foreground-hover);
@@ -282,15 +280,12 @@
   // Toggle has no SetDisabled brush — Slate applies its global disabled
   // tint (~0.45 alpha) to the whole widget. Override base .ss-btn:disabled
   // so we don't paint Dropdown bg + Recessed outline.
-  &:disabled,
-  &[aria-disabled="true"],
   &:has(> .ss-toggle__input:disabled) {
     background: transparent;
     border: none;
     color: color-mix(in srgb, var(--ss-foreground) 45%, transparent);
     cursor: not-allowed;
 
-    &[aria-pressed="true"],
     &:has(> .ss-toggle__input:checked) {
       // Pressed-on disabled: keep Primary fill, fade with opacity so both
       // bg and text get the disabled tint together.

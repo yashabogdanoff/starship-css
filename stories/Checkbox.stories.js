@@ -58,14 +58,14 @@ export const Matrix = {
       wrap.appendChild(h);
     });
     row("Enabled", [
-      makeCheckbox({}),
-      makeCheckbox({ checked: true }),
-      makeCheckbox({ indeterminate: true }),
+      makeCheckbox({ label: "Unchecked" }),
+      makeCheckbox({ checked: true, label: "Checked" }),
+      makeCheckbox({ indeterminate: true, label: "Indeterminate" }),
     ]);
     row("Disabled", [
-      makeCheckbox({ disabled: true }),
-      makeCheckbox({ disabled: true, checked: true }),
-      makeCheckbox({ disabled: true, indeterminate: true }),
+      makeCheckbox({ disabled: true, label: "Disabled unchecked" }),
+      makeCheckbox({ disabled: true, checked: true, label: "Disabled checked" }),
+      makeCheckbox({ disabled: true, indeterminate: true, label: "Disabled indeterminate" }),
     ]);
     return wrap;
   },

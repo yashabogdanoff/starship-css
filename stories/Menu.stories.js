@@ -192,7 +192,7 @@ export const ContextMenuExample = {
                   user-select: none;
                   cursor: context-menu;">
         Right-click anywhere inside this area<br>
-        <span style="color: var(--ss-white-25); font-size: 11px;">
+        <span style="color: var(--ss-foreground-header); font-size: 11px;">
           ESC or click outside dismisses. The same .ss-menu also serves as
           menubar pull-down / toolbar dropdown / submenu.
         </span>

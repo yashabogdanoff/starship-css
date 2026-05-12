@@ -76,7 +76,7 @@ export const Matrix = {
       <div>Disabled</div>
       <div><input class="ss-slider" type="range" min="0" max="100" value="50" disabled aria-label="disabled"></div>
 
-      <div style="grid-column: 1 / -1; margin-top: 12px; opacity: 0.6; font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em;">Value range (resting)</div>
+      <div style="grid-column: 1 / -1; margin-top: 12px; font-size: 10px; color: var(--ss-foreground-header); text-transform: uppercase; letter-spacing: 0.06em;">Value range (resting)</div>
 
       <div>Min</div>
       <div><input class="ss-slider" type="range" min="0" max="100" value="0" aria-label="min"></div>

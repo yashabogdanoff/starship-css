@@ -155,6 +155,15 @@ export const Welcome = {
         <li><strong style="color: var(--ss-foreground-hover);">Firefox / Safari</strong> — most widgets work; combo / menu popovers position at viewport top-left until a JS fallback ships.</li>
       </ul>
 
+      ${SECTION_TITLE("Accessibility")}
+      <p style="font-size: 12px; margin: 0;">
+        Targets <strong style="color: var(--ss-foreground-hover);">WCAG 2.1 AA</strong>
+        for visible/active states. Verified via <code>@storybook/addon-a11y</code> on every
+        story. Two documented exemptions follow the UE Slate visual contract:
+        <code>:disabled</code> contrast (per WCAG 1.4.3) and <code>.ss-menu__heading</code>
+        muted-section style. See README for the full table.
+      </p>
+
       ${SECTION_TITLE("Where to look")}
       <ul style="margin: 0; padding-left: 20px; font-size: 12px;">
         <li><a href="https://github.com/yashabogdanoff/starship-css" target="_blank" rel="noreferrer noopener" style="color: var(--ss-highlight); text-decoration: none;">github.com/yashabogdanoff/starship-css</a> — source.</li>

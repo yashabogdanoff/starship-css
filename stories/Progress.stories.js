@@ -53,10 +53,10 @@ export const Matrix = {
       <div>Full</div>
       <div>${bar({ value: 100 })}</div>
 
-      <div>Disabled<br><span style="opacity:0.6;font-size:10px;">aria-disabled</span></div>
+      <div>Disabled<br><span style="font-size:10px;color:var(--ss-foreground-header);">aria-disabled</span></div>
       <div>${bar({ value: 50, disabled: true })}</div>
 
-      <div style="grid-column: 1 / -1; margin-top: 12px; opacity: 0.6; font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em;">Marquee (indeterminate)</div>
+      <div style="grid-column: 1 / -1; margin-top: 12px; font-size: 10px; color: var(--ss-foreground-header); text-transform: uppercase; letter-spacing: 0.06em;">Marquee (indeterminate)</div>
 
       <div>Marquee</div>
       <div>${bar({ marquee: true })}</div>

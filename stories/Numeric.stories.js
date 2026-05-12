@@ -80,7 +80,7 @@ export const Matrix = {
       <div>Normal</div>
       <div>${spin({ value: 250 })}</div>
 
-      <div>Hover<br><span style="opacity:0.6;font-size:10px;">(parent + fill)</span></div>
+      <div>Hover<br><span style="font-size:10px;color:var(--ss-foreground-header);">(parent + fill)</span></div>
       <div><div class="ss-numeric ss-numeric--filled" data-state="hover"
                 data-num-min="0" data-num-max="500"
                 data-num-min-slider="-500" data-num-max-slider="500"
@@ -90,7 +90,7 @@ export const Matrix = {
         <input class="ss-numeric__input" type="text" aria-label="hover">
       </div></div>
 
-      <div>Focus-within<br><span style="opacity:0.6;font-size:10px;">(input focused)</span></div>
+      <div>Focus-within<br><span style="font-size:10px;color:var(--ss-foreground-header);">(input focused)</span></div>
       <div><div class="ss-numeric ss-numeric--filled" data-state="focus"
                 data-num-min="0" data-num-max="500"
                 data-num-min-slider="-500" data-num-max-slider="500"
@@ -100,18 +100,18 @@ export const Matrix = {
         <input class="ss-numeric__input" type="text" aria-label="focus">
       </div></div>
 
-      <div>Disabled<br><span style="opacity:0.6;font-size:10px;">(parent :has)</span></div>
+      <div>Disabled<br><span style="font-size:10px;color:var(--ss-foreground-header);">(parent :has)</span></div>
       <div>${spin({ value: 250, disabled: true })}</div>
 
-      <div style="grid-column: 1 / -1; margin-top: 12px; opacity: 0.6; font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em;">Variants</div>
+      <div style="grid-column: 1 / -1; margin-top: 12px; font-size: 10px; color: var(--ss-foreground-header); text-transform: uppercase; letter-spacing: 0.06em;">Variants</div>
 
-      <div>SpinBox (0..500)<br><span style="opacity:0.6;font-size:10px;">min/max ≠ minSlider/maxSlider</span></div>
+      <div>SpinBox (0..500)<br><span style="font-size:10px;color:var(--ss-foreground-header);">min/max ≠ minSlider/maxSlider</span></div>
       <div>${spin({ min: 0, max: 500, minSlider: -500, maxSlider: 500, value: 250 })}</div>
 
-      <div>NumericEntryBox<br><span style="opacity:0.6;font-size:10px;">(-1000..1000)</span></div>
+      <div>NumericEntryBox<br><span style="font-size:10px;color:var(--ss-foreground-header);">(-1000..1000)</span></div>
       <div>${spin({ min: -1000, max: 1000, minSlider: -500, maxSlider: 500, value: 500 })}</div>
 
-      <div>No-spin<br><span style="opacity:0.6;font-size:10px;">always editable, no fill</span></div>
+      <div>No-spin<br><span style="font-size:10px;color:var(--ss-foreground-header);">always editable, no fill</span></div>
       <div>${spin({ value: 0, noSpin: true })}</div>
     </div>
   `,

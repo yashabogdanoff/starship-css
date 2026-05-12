@@ -4,6 +4,49 @@ All notable changes to `starship-css` will be documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **Storybook `@storybook/addon-a11y`** wired in `.storybook/main.js` —
+  axe-core runs on every story; violations show up in the Accessibility
+  panel. WCAG 2.1 AA target declared in `README.md` with two documented
+  exemptions (`:disabled` per WCAG 1.4.3, `.ss-menu__heading` per UE
+  Menu.Heading style).
+- **Storybook Controls** (`argTypes` + parametrized render) on Combo /
+  Input (incl. `textarea` toggle + `Textarea` / `TextareaBare` stories) /
+  Tabs / Menubar — all atom widgets now have live Controls.
+- **`Welcome` story** pinned to top of Storybook sidebar via
+  `parameters.options.storySort`.
+- **CSS-only `.ss-btn--toggle`** — `<label>` + hidden
+  `<input type="checkbox">` + `:has(input:checked)` + `:focus-within`.
+  No JS required.
+
+### Changed
+
+- **`.ss-btn--toggle` is now CSS-only.** The legacy
+  `<button class="ss-btn--toggle" aria-pressed>` markup is **removed**
+  (selector dropped from `_buttons.scss`, story dropped from
+  `Button.stories.js`, `initToggleButtons()` no longer targets
+  `.ss-btn--toggle`). `aria-pressed` on `<label>` is invalid ARIA and
+  was the only reason JS was needed here.
+- **`initToggleButtons()`** now only wires `.ss-toolbar__btn--toggle`
+  and `.ss-toolbar__split-btn--toggle` (real `<button>` elements where
+  `aria-pressed` is semantically correct).
+- **Matrix story captions** (`Button` / `Numeric` / `Slider` / `Progress`
+  variants section, `Segmented` parent-state hint) — bumped contrast
+  from `opacity: 0.6` / `--ss-white-25` to `var(--ss-foreground-header)`
+  so axe-core stops flagging them.
+- **Matrix story inputs/checkboxes** (`Input` / `Checkbox`) now carry
+  `aria-label` so axe `label` rule passes.
+- **`Menubar` story** — unique `aria-label` per `<nav>` instance to
+  satisfy axe `landmark-unique` when several menubars sit on one page.
+
+### Removed
+
+- `Button/ToggleLegacyAriaPressed` story (no users yet — back-compat
+  path deleted instead of preserved; see `CLAUDE.md` "Project phase").
+
 ## [0.0.3] — 2026-05-12
 
 ### Added

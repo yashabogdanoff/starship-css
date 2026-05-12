@@ -84,26 +84,26 @@ export const Matrix = {
   render: () => `
     <div style="display: grid; grid-template-columns: max-content 1fr; gap: 8px 12px; align-items: center; color: var(--ss-foreground); font-family: var(--ss-font); font-size: 11px; max-width: 480px;">
       <div>Default</div>
-      <div><input class="ss-input" type="text" placeholder="Type here..."></div>
+      <div><input class="ss-input" type="text" placeholder="Type here..." aria-label="Default input"></div>
 
       <div>With value</div>
-      <div><input class="ss-input" type="text" value="Cube_42"></div>
+      <div><input class="ss-input" type="text" value="Cube_42" aria-label="Input with value"></div>
 
       <div>Disabled</div>
-      <div><input class="ss-input" type="text" value="Locked" disabled></div>
+      <div><input class="ss-input" type="text" value="Locked" disabled aria-label="Disabled input"></div>
 
       <div>Read-only</div>
-      <div><input class="ss-input" type="text" value="Read-only" readonly></div>
+      <div><input class="ss-input" type="text" value="Read-only" readonly aria-label="Read-only input"></div>
 
       <div>Bare</div>
-      <div><input class="ss-input ss-input--bare" type="text" value="Click to focus"></div>
+      <div><input class="ss-input ss-input--bare" type="text" value="Click to focus" aria-label="Bare input"></div>
 
       <div>Textarea</div>
-      <div><textarea class="ss-textarea" rows="3">This is multi-line
+      <div><textarea class="ss-textarea" rows="3" aria-label="Textarea">This is multi-line
 editable text.</textarea></div>
 
       <div>Textarea bare</div>
-      <div><textarea class="ss-textarea ss-textarea--bare" rows="3">This is a multi-line editable text box (bare)</textarea></div>
+      <div><textarea class="ss-textarea ss-textarea--bare" rows="3" aria-label="Bare textarea">This is a multi-line editable text box (bare)</textarea></div>
     </div>
   `,
 };

@@ -46,7 +46,7 @@ The `<script>` is opt-in. Pure-CSS widgets (buttons, inputs, checkbox, radio, se
 
 | Group | Class(es) | Needs `<script>`? | Source |
 |---|---|---|---|
-| **Buttons** | `.ss-btn`, `--primary`, `--simple`, `--icon-only`, `--toggle` | Only `--toggle` (for `aria-pressed` flip) | `_buttons.scss` |
+| **Buttons** | `.ss-btn`, `--primary`, `--simple`, `--icon-only`, `--toggle` | No (`--toggle` is CSS-only: `<label>` + hidden `<input type="checkbox">`) | `_buttons.scss` |
 | **Inputs** | `.ss-input`, `.ss-textarea`, `--bare` | No | `_inputs.scss` |
 | **Search** | `.ss-search` + nested `.ss-input` + `.ss-search__icon` | No | `_inputs.scss` |
 | **Inline edit** | `.ss-inline-edit` + `[data-inline-edit]` | Yes (`initInlineEditables`) | `_inputs.scss` + `starship.js` |
@@ -64,6 +64,21 @@ The `<script>` is opt-in. Pure-CSS widgets (buttons, inputs, checkbox, radio, se
 | **Progress bar** | `.ss-progress`, `--marquee`, `aria-disabled="true"` | No | `_progress.scss` |
 
 All widgets respect `prefers-reduced-motion` globally. Every `init*` JS function is idempotent — re-running them after dynamically adding markup wires only the new elements.
+
+---
+
+## Accessibility
+
+Target: **WCAG 2.1 AA** for visible/active states. Widgets ship with native HTML semantics (`<button>`, `<input>`, `<label>`, `<textarea>`), correct ARIA roles (`role="menu"` / `listbox"` / `radiogroup"`), and full keyboard support. `prefers-reduced-motion` is honoured.
+
+We verify with `@storybook/addon-a11y` (axe-core) on every story. Two known categories of `color-contrast` warnings are intentional and follow the Unreal Engine Slate visual contract:
+
+| Where | What | Why we keep it |
+|---|---|---|
+| `:disabled` states (inputs, buttons, combos, etc.) | Foreground at `var(--ss-foreground)` 45% over panel ≈ 3:1 | WCAG 2.1 SC 1.4.3 explicitly exempts text in inactive UI components from the contrast threshold. axe rarely flags this in practice (recognises `[disabled]` / `[aria-disabled]`); if a custom palette ever brings it over, swap a base token. |
+| `.ss-menu__heading` (section headers inside menus) | `var(--ss-white-25)` (#FFFFFF @ 25%) on panel ≈ 3:1 | UE Slate Menu.Heading style — sectional captions inside menus are intentionally muted vs. menu entries. Override `--ss-white-25` in your `:root` if your project needs AA-strict headings. |
+
+Anything else flagged by axe is a bug — please open an issue.
 
 ---
 
