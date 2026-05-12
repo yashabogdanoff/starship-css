@@ -393,6 +393,13 @@
   var numericStates = (typeof WeakMap === 'function') ? new WeakMap() : null;
   var numericArmed = null;
   var numericGlobalsInited = false;
+  // Frame-locked update so drag-fill renders at display refresh rate even
+  // when Chrome coalesces mousemove events (e.g. under OS-level
+  // reduce-motion, battery saver, or background-tab throttling).
+  // The mousemove handler stores the latest cursor X here; a single RAF
+  // callback consumes it once per paint frame.
+  var numericPendingX = null;
+  var numericRafPending = false;
 
   function initNumerics() {
     var nums = document.querySelectorAll('.ss-numeric:not([data-ss-inited])');
@@ -518,11 +525,20 @@
 
     // Singleton document listeners — attached on first init only.
     if (!numericGlobalsInited && numericStates) {
-      document.addEventListener('mousemove', function (e) {
-        if (!numericArmed) return;
+      // Apply the latest cursor position to the armed widget exactly once
+      // per paint frame. Decouples drag-fill rendering from mousemove
+      // dispatch rate (Chrome throttles mousemove under reduce-motion,
+      // battery saver, or when a singleton document handler outpaces the
+      // compositor; RAF callbacks run in the rendering pipeline and are
+      // frame-locked instead).
+      function flushNumericFrame() {
+        numericRafPending = false;
+        if (numericPendingX == null || !numericArmed) return;
         var s = numericStates.get(numericArmed);
-        if (!s || !s.armed || s.editing) return;
-        var dx = e.clientX - s.downX;
+        if (!s || !s.armed || s.editing) { numericPendingX = null; return; }
+        var x = numericPendingX;
+        numericPendingX = null;
+        var dx = x - s.downX;
         if (!s.dragging && Math.abs(dx) >= DRAG_THRESHOLD_PX) {
           s.dragging = true;
           numericArmed.classList.add('is-dragging');
@@ -535,7 +551,7 @@
             s.value = clampedStart;
             s.render();
           }
-          s.downX = e.clientX;
+          s.downX = x;
           s.downValue = s.value;
           return;
         }
@@ -546,6 +562,15 @@
           var sensitivity = (s.maxSlider - s.minSlider) / rect.width;
           s.value = s.clampDrag(s.downValue + dx * sensitivity);
           s.render();
+        }
+      }
+
+      document.addEventListener('mousemove', function (e) {
+        if (!numericArmed) return;
+        numericPendingX = e.clientX;
+        if (!numericRafPending) {
+          numericRafPending = true;
+          requestAnimationFrame(flushNumericFrame);
         }
       });
 
