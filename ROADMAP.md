@@ -8,16 +8,35 @@ Process docs (build, conventions, visual-fidelity workflow, accessibility, Story
 
 ## Scope and ambition
 
+### What we ship
+
+**Widget primitives and visual styles** — the building blocks. For each widget:
+
+- CSS partial that matches UE Slate's appearance pixel-for-pixel (states, brushes, paddings).
+- HTML/markup contract — exact semantic elements and class names.
+- Minimal JS in `starship.js` for mechanics the consumer can't get from native HTML/CSS alone: open/close a popover, drag-resize a splitter, drag-fill a numeric, expand a `<details>`, flip `aria-pressed`. No business logic, no data binding, no application state.
+
+### What we explicitly DON'T ship
+
+- **Color math** for the picker (HSV ↔ RGB conversion, gamma, color space transforms). We ship the chrome (sliders, swatches, hex input layout). Consumer wires the conversion.
+- **Property-type introspection** for a "live" DetailsView. We ship the row layout + category headers. Consumer maps their data shape to the right child widget themselves.
+- **Asset thumbnail / drag-drop / asset-system integration.** We ship the thumbnail box chrome. Consumer wires the asset backend.
+- **Anything resembling an application framework** — no state store, no router, no data fetching helpers.
+
+The mental model: **starship-css is to UE Slate what Bootstrap is to a generic admin theme.** Bootstrap ships a `<div class="modal">` that opens and closes; what's *inside* the modal is your job. Same here — `.ss-details-row` is layout, what data fills it is your job.
+
+The Unreal Editor replica mentioned as a stretch goal in §"Stretch" below is **a demonstration** that the primitives are complete enough to assemble it — not a deliverable component. Building the editor itself, with real logic, would be the consumer's project on top of us.
+
+### Surface scope
+
 | Surface | Widget types | Status |
 |---|---|---|
 | **Starship Gallery** (UE test harness — `SStarshipGallery.cpp`) | ~21 | ✅ ~100% covered |
 | **Slate `StarshipCoreStyle`** (base brushes) | ~50 entries × variations | Buttons / inputs / chrome covered; specialty brushes deferred |
 | **Slate `StarshipStyle`** (editor-specific, 558 KB — **4× larger** than Core) | ~200+ types | ~5% covered (toolbar, menubar, tabs, basic menus) |
-| **Full Unreal Editor** (Outliner, DetailsView, BlueprintEditor, MaterialEditor, etc.) | composite of everything above | ~3% covered |
+| **Full Unreal Editor** (Outliner, DetailsView, BlueprintEditor, MaterialEditor, etc.) | composite of everything above | "We provide the bricks; not building the house ourselves." |
 
-The asymmetry is real: **Starship Gallery is the tip of an iceberg.** The editor itself is roughly 5-6× as much widget surface, plus all the composite views (DetailsView is the single largest contributor — it composes ~15 atom widgets plus property-type machinery).
-
-We do **not** aim to recreate the entire editor in v1.0. Phases below carve the work into shippable releases.
+The asymmetry is real: **Starship Gallery is the tip of an iceberg.** The editor itself is roughly 5-6× as much widget surface — but we ship the *primitives* it's built from, not the editor itself.
 
 ---
 
@@ -76,19 +95,19 @@ We do **not** aim to recreate the entire editor in v1.0. Phases below carve the 
 
 ---
 
-## Phase 6 — Pickers & inline editors
+## Phase 6 — Picker & input chrome
 
-> **Why next:** Details panel rows are 80% pickers (color, vector, asset, class, enum). Without these, even a covered DetailsView scaffold (Phase 8) renders as empty boxes.
+> **Scope reminder:** we ship the *visual* of pickers, not the *logic*. Consumer plugs in their data and (if needed) math.
 
 **Target: `v0.2.0`.** Estimate: ~3-4 weeks.
 
-| Widget | UE source | Notes | Effort |
-|---|---|---|---|
-| **Color picker** | `SColorPicker` | Standard HSV wheel + saturation/value plane + alpha slider + hex input + sRGB toggle. The most universally needed picker. Both pop-up and inline forms. | L |
-| **Vector / Rotator input** | `SVectorInputBox`, `SRotatorInputBox` | Three `.ss-numeric` boxes side-by-side with R/G/B (or X/Y/Z) colour-coded labels. Mostly composition, very little new CSS. | S |
-| **Enum combo** | `SEnumComboBox` | Variant of combo with icon per entry + text. Mostly markup convention; no real new widget. | S |
-| **Color grading wheel** | `SColorGradingPicker` | Trigonometric color picker for HDR. Specialized. Defer unless asked. | XL |
-| **Asset picker / Class picker** | `SAssetPicker`, `SClassPicker` | UE-content-specific (knows about `.uasset` files). We can ship the **chrome** as `.ss-asset-picker` — empty thumbnail box + name + browse button — without the asset-system machinery. Consumer wires their own data. | M |
+| Widget | UE source | What we ship | What consumer wires | Effort |
+|---|---|---|---|---|
+| **Color picker chrome** | `SColorPicker` | The HSV plane background gradient + cursor dot CSS, hue/value slider rails styled, hex/RGB input row layout, "OK / Cancel" button row, eye-dropper button slot. Markup: `<div class="ss-color-picker">` with named slots. | HSV↔RGB conversion math, drag-to-pick on the plane, click-on-swatch logic, hex parsing. | M |
+| **Vector / Rotator input** | `SVectorInputBox`, `SRotatorInputBox` | Three `.ss-numeric` boxes side-by-side with X/Y/Z (or pitch/yaw/roll) colour-coded labels — composition layout. | The three values are independent `.ss-numeric` instances; consumer reads each. | S |
+| **Enum combo** | `SEnumComboBox` | Variant of combo with icon per entry + text. Markup convention `.ss-combo__option` already supports nested icons. | The enum values themselves; consumer fills options. | S |
+| **Color grading control** | `SColorGradingPicker` | (Optional) the four-wheel layout chrome (lift/gamma/gain/offset boxes). | All the HDR math. **Defer unless we need the chrome.** | M chrome only |
+| **Asset / class slot** | `SAssetPicker`, `SClassPicker` | `.ss-asset-slot` — empty thumbnail box (gray border + name placeholder) + "browse" button + clear ×. Tight Slate-look chrome. | The asset system itself (file-type detection, thumbnail rendering, browse-dialog opening). | M |
 
 ---
 
@@ -107,33 +126,53 @@ We do **not** aim to recreate the entire editor in v1.0. Phases below carve the 
 
 ---
 
-## Phase 8 — Property Editor compositions
+## Phase 8 — DetailsView markup recipes
 
-> **Why later:** this is **the** signature UE widget, but it's a composite of all of Phase 5-7. Doing it earlier means inventing pickers and structural widgets ad-hoc inside the DetailsView code, which we'd then have to refactor out.
+> **Scope reminder:** this is **the** signature UE widget, but we ship it as a **static markup recipe** + supporting partials. No JS reads "this is a Vector3" and renders three numeric boxes — that's the consumer's job. We just guarantee that if the consumer writes the documented HTML, it looks like UE.
 
 **Target: `v0.4.0`.** Estimate: ~3-6 weeks depending on depth.
 
-| Widget | UE source | Notes | Effort |
-|---|---|---|---|
-| **Details panel scaffold** | `SDetailsView`, `IDetailsView` | Category headers (= `SExpandableArea`) + property rows (label-left, editor-right two-column layout). Static composition; **no property-type introspection** (consumer wires what widget appears per row). | L |
-| **Property row** | `SDetailRow`, `FPropertyDetails` | Label cell + editor cell + optional reset-to-default arrow + optional edit-conditions chevron. Indent levels for nested struct properties. | M |
-| **Search/filter bar for details** | `SSearchBox` inside DetailsView | We have `.ss-search`. Add "filtered rows highlight" + "no matches" empty state. | S |
-| **Object property entry** | `SObjectPropertyEntryBox` | The asset-picker compound (thumbnail + name + browse + clear). Builds on Phase 6 asset-picker. | M |
+| Widget | UE source | What we ship | What consumer wires | Effort |
+|---|---|---|---|---|
+| **Details panel scaffold** | `SDetailsView`, `IDetailsView` | `.ss-details` container, `.ss-details-section` (uses `.ss-expandable`), `.ss-details-row` (label-left, editor-right two-column layout). Indent levels for nested struct properties (CSS counter-based). | Which child widget appears in `.ss-details-editor` slot per row (`.ss-numeric` for floats, `.ss-checkbox` for bools, `.ss-color-picker` chrome for colors, etc.). | L |
+| **Property row** | `SDetailRow`, `FPropertyDetails` | Label cell + editor cell + optional reset-to-default arrow slot + optional edit-conditions chevron slot. | Whether to show the reset arrow (i.e. "is the value different from default") and what clicking it does. | M |
+| **Search bar with row filtering** | `SSearchBox` inside DetailsView | `.ss-search` (already shipped) + `.ss-details-row[hidden]` rule for filtered rows + "no matches" empty-state markup. | Which rows match the query — consumer iterates and toggles `hidden`. | S |
+
+The point is consumers write something like (in their React / Vue / vanilla):
+
+```html
+<div class="ss-details">
+  <details class="ss-details-section" open>
+    <summary class="ss-expandable__header">Transform</summary>
+    <div class="ss-details-row">
+      <label class="ss-details-label">Location</label>
+      <div class="ss-details-editor">
+        <div class="ss-vector-input">
+          <input class="ss-numeric ss-numeric--filled" data-num-value="0">
+          <!-- × 3 for X/Y/Z -->
+        </div>
+      </div>
+    </div>
+  </details>
+</div>
+```
+
+…and it looks like UE's Details panel. **The mapping from `Transform.Location` to that markup is the consumer's code.** We just guarantee the chrome.
 
 ---
 
-## Phase 9 — Advanced specialized widgets
+## Phase 9 — Specialized chrome (long-tail)
 
-> Long-tail. Pick individual ones if a real need surfaces; we don't aim for full coverage.
+> Long-tail. Pick individual ones if a real need surfaces. **All are "chrome only" — visual scaffolding consumer fills with their logic.**
 
-| Widget | UE source | Status |
-|---|---|---|
-| Curve editor | `SCurveEditor` | Out of scope unless someone really needs it. Heavy SVG / Canvas. |
-| Graph panel (Blueprint nodes) | `SGraphPanel`, `SGraphNode` | Out of scope. This is the *content* of Blueprint editor, not a reusable widget. |
-| Asset thumbnail | `SAssetThumbnail` | Static box + name; full thumbnail machinery requires UE asset system. Ship chrome only. |
-| Viewport chrome | `SLevelViewport` border, gizmo overlays | Specialized; defer. |
-| Dock tab system | `SDockTab`, `SDockArea` | Whole floating-window manager. Multi-week project on its own. Likely a separate library. |
-| Status bar | Editor bottom-bar | Composable from Toolbar + Notification — likely doesn't need a new widget. |
+| Widget | UE source | What chrome we'd ship | Status |
+|---|---|---|---|
+| Curve editor chrome | `SCurveEditor` | Grid background + axis labels + handle/point dot styles. Bezier math = consumer. | Defer. |
+| Graph panel chrome | `SGraphPanel`, `SGraphNode` | Node card styles, pin shapes, connection line stroke. Drag / connect / snap = consumer. | Defer. |
+| Asset thumbnail chrome | `SAssetThumbnail` | Square card with name strip, optional colored asset-type border, hover overlay. Real thumbnail bytes = consumer. | Ship if asked. |
+| Viewport chrome | `SLevelViewport` border, gizmo overlays | Just border + corner-button slots. Actual 3D = consumer. | Defer. |
+| Dock tab system | `SDockTab`, `SDockArea` | Tab strip already covered. The drag-out-to-float + tab-snap-zones logic is **out of scope** — that's an application framework concern. | Defer. |
+| Status bar | Editor bottom-bar | Composable from Toolbar + Notification — likely no new widget needed. | n/a |
 
 ---
 
@@ -165,13 +204,13 @@ Mark these as completed inline in the table above when shipped. When the table g
 
 ---
 
-## Stretch goal — Full Unreal Editor replica
+## Stretch goal — Editor-replica showcase (demo, not deliverable)
 
-Aspirational only. Would require Phases 5-9 done + composite views (Outliner panel, full DetailsView with property-type machinery, Content Browser frame, Blueprint editor frame) + asset thumbnail system + viewport chrome.
+Once Phases 5-9 ship, the framework's primitives should be **sufficient** to assemble a static Unreal-Editor mockup page — Outliner shape, Details panel layout, Content Browser frame, Blueprint editor frame chrome. This would be **a demonstration** that the brick set is complete, hosted alongside the Storybook (e.g. on a `/editor-demo/` route). It's not a deliverable component — there'd be no JS reading "open this blueprint" or dragging assets. Just markup composed from our primitives.
 
-Rough estimate if pursued: **3-6 months of focused work** for one person. Likely needs to become a separate project (`starship-editor-css` or similar) — at that point it's no longer a CSS framework, it's a UE-editor mockup site.
+If it ever happens, it would be a Storybook story group (e.g. `Demos/UnrealEditor`) rather than a separate package. The point is: a consumer who wants to build a real editor-like product reads our markup recipe and writes their own application logic on top.
 
-Decision deferred until after Phase 8 ships and we see whether real consumers ask for it.
+**No fixed timeline.** Decision deferred until after Phase 8 ships.
 
 ---
 
@@ -186,6 +225,21 @@ Decision deferred until after Phase 8 ships and we see whether real consumers as
 7. When all items in a phase are checked, bump the minor version and tag.
 
 **One widget per branch / commit cycle.** "Phase 5" is a label, not a single commit.
+
+---
+
+## Where we sit in the web UI library landscape
+
+| Category | Examples | Are we this? |
+|---|---|---|
+| **CSS framework + thin JS for mechanics** | Bootstrap, Foundation, Pico (this is the closest analogue) | ✅ **Yes — this is us.** |
+| **CSS-only framework** | Tailwind, Tachyons | Almost — we have a small `starship.js` for behaviour native HTML can't do |
+| **Headless behaviour library** | Radix UI, React Aria, Headless UI | No — they ship behaviour without styles; we ship styles |
+| **Component library / Design system (framework-bound)** | Material UI, Ant Design, Chakra, shadcn/ui | No — those ship React components with built-in state, prop-driven generation, data binding |
+| **Component library (framework-agnostic)** | Shoelace, Lit + Web Components | No — those ship custom elements with internal state |
+| **Application framework** | Electron + chrome, Tauri, full editor SDKs | No — we don't manage application state, routing, or asset systems |
+
+Our package shape: **one npm package, one CSS bundle, one optional JS bundle**. Same as Bootstrap. Consumer brings their own framework (React, Vue, Solid, vanilla — anything) and composes our primitives.
 
 ---
 
