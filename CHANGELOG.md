@@ -33,6 +33,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`initToggleButtons()`** now only wires `.ss-toolbar__btn--toggle`
   and `.ss-toolbar__split-btn--toggle` (real `<button>` elements where
   `aria-pressed` is semantically correct).
+- **`initNumerics()` drag uses `requestAnimationFrame` throttle.** The
+  document-level mousemove handler now stashes the cursor X and a single
+  RAF callback applies it once per paint frame. Fixes visible "steppy"
+  drag on Windows with OS-level reduce-motion enabled (Chrome
+  aggressively coalesces input events for motion-sensitive users; RAF
+  callbacks run inside the rendering pipeline and survive that
+  throttle). Also caps style-width writes at 60 Hz for everyone (down
+  from ~200 Hz on high-poll mice).
 - **Matrix story captions** (`Button` / `Numeric` / `Slider` / `Progress`
   variants section, `Segmented` parent-state hint) — bumped contrast
   from `opacity: 0.6` / `--ss-white-25` to `var(--ss-foreground-header)`

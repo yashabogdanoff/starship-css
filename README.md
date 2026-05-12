@@ -1,7 +1,7 @@
 # starship-css
 
 > A CSS framework that styles plain HTML to look like the Unreal Engine 5 editor (Slate UI).
-> CSS-first: most components are pure CSS. A small opt-in `starship.js` (~12 KB minified) wires the few widgets HTML/CSS can't drive on their own (combobox, menus, numeric drag, inline edit, toggle, tab close) and applies cross-OS font polish. No build step for users — just `<link>`, optionally `<script>`, write semantic HTML with `ss-` prefixed classes.
+> CSS-first: most components are pure CSS. A small opt-in `starship.js` (~12 KB minified) wires the few widgets HTML/CSS can't drive on their own (combobox, menus, numeric drag, inline edit, toolbar toggle / split-button, tab close) and applies cross-OS font polish. No build step for users — just `<link>`, optionally `<script>`, write semantic HTML with `ss-` prefixed classes.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
 
@@ -38,7 +38,7 @@ Then write semantic HTML with `ss-` prefixed classes:
 <button class="ss-btn">Cancel</button>
 ```
 
-The `<script>` is opt-in. Pure-CSS widgets (buttons, inputs, checkbox, radio, segmented, slider, progress) work without it. Anything with a popover (combo, menus, toolbar dropdowns), interactive numeric drag, inline edit, toggle aria-pressed flip, or tab close-button needs it. Loading the script auto-wires every supported component on the page via `data-*` markers.
+The `<script>` is opt-in. Pure-CSS widgets (buttons including `--toggle`, inputs, checkbox, radio, segmented, slider, progress) work without it. Anything with a popover (combo, menus, menubar, toolbar dropdowns), interactive numeric drag, inline edit, toolbar `__btn--toggle` / split-button `aria-pressed` flip, or tab close-button needs it. Loading the script auto-wires every supported component on the page via `data-*` markers.
 
 ---
 
@@ -125,7 +125,12 @@ npm run watch       # sass watch on src/scss/starship.scss
 npm run storybook   # launches Storybook on http://localhost:6006
 ```
 
-Storybook is the canonical dev surface — every widget has a state matrix story under its semantic category (`Buttons/`, `Inputs/`, `Selectors/`, `Containers/`, `Feedback/`, `Foundations/`). The `storybook-addon-pseudo-states` plugin force-applies `:hover` / `:focus-visible` / `:active` per cell, so a single screenshot captures every state without real cursor interaction.
+Storybook is the canonical dev surface — every widget has a state matrix story under its semantic category (`Buttons/`, `Inputs/`, `Selectors/`, `Containers/`, `Feedback/`, `Foundations/`). The `Welcome` story is pinned to the top of the sidebar as a landing page. Two addons run on every story:
+
+- **`storybook-addon-pseudo-states`** — force-applies `:hover` / `:focus-visible` / `:active` per cell, so a single screenshot captures every state without real cursor interaction.
+- **`@storybook/addon-a11y`** (axe-core) — runs accessibility checks on every story; results appear in the Accessibility panel.
+
+Most atom widgets (Button, Checkbox, Input, Radio, Segmented, Slider, Numeric, Search, InlineEdit, Combo, Menubar, Tabs) expose live **Controls** via `argTypes` — flip variants and states from the addon panel without editing code.
 
 `docs/index.html` is the public overview gallery (deployed to GitHub Pages). After Storybook landed it is **frozen** as a stable visual reference; all new component states/behaviour go into `stories/*.stories.js`.
 
