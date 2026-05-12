@@ -46,6 +46,11 @@ function openPopover({ options = ["Option A", "Option B", "Option C"], selectedI
 /** @type { import('@storybook/html-vite').Meta } */
 const meta = {
   title: "Selectors/Combo",
+  argTypes: {
+    label: { control: "text" },
+    simple: { control: "boolean", description: "Icon-only trigger" },
+    disabled: { control: "boolean" },
+  },
   render: (args) => closedTrigger(args),
 };
 

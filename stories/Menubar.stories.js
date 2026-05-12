@@ -21,14 +21,25 @@ function menubar({ items }) {
 /** @type { import('@storybook/html-vite').Meta } */
 const meta = {
   title: "Selectors/Menubar",
+  argTypes: {
+    labels: { control: "text", description: "Comma-separated item labels" },
+    openIndex: { control: "number", description: "Index of opened pull-down (-1 = none)" },
+    disabledIndex: { control: "number", description: "Index of disabled item (-1 = none)" },
+  },
+  render: ({ labels = "Menu 1, Menu 2, Menu 3", openIndex = -1, disabledIndex = -1 }) =>
+    menubar({
+      items: labels.split(",").map((s, i) => ({
+        label: s.trim(),
+        expanded: i === openIndex,
+        disabled: i === disabledIndex,
+      })),
+    }),
 };
 
 export default meta;
 
 export const Default = {
-  render: () => menubar({
-    items: [{ label: "Menu 1" }, { label: "Menu 2" }, { label: "Menu 3" }],
-  }),
+  args: { labels: "Menu 1, Menu 2, Menu 3", openIndex: -1, disabledIndex: -1 },
 };
 
 export const WithOpenItem = {

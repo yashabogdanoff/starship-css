@@ -53,9 +53,21 @@ function tabs({ count = 4, minor = false, withIcons = false, activeIndex = 0, wi
 /** @type { import('@storybook/html-vite').Meta } */
 const meta = {
   title: "Containers/Tabs",
+  argTypes: {
+    count: { control: { type: "range", min: 1, max: 32, step: 1 } },
+    activeIndex: { control: "number" },
+    withIcons: { control: "boolean" },
+    minor: { control: "boolean", description: "`.ss-tab--minor` (sub-nav)" },
+    width: { control: { type: "range", min: 200, max: 1600, step: 20 } },
+  },
+  render: (args) => tabs(args),
 };
 
 export default meta;
+
+export const Default = {
+  args: { count: 4, withIcons: true, activeIndex: 0, width: 480 },
+};
 
 export const Two = { render: () => tabs({ count: 2, withIcons: true }) };
 export const Four = { render: () => tabs({ count: 4, withIcons: true }) };

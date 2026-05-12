@@ -8,17 +8,33 @@ const meta = {
   argTypes: {
     placeholder: { control: "text" },
     value: { control: "text" },
-    bare: { control: "boolean" },
+    textarea: { control: "boolean", description: "Render `.ss-textarea` instead of `.ss-input`" },
+    bare: { control: "boolean", description: "`--bare` modifier (no chrome until focus)" },
     disabled: { control: "boolean" },
     readOnly: { control: "boolean" },
+    rows: { control: "number", description: "textarea height (ignored for `<input>`)" },
   },
   render: ({
     placeholder = "Placeholder",
     value = "",
+    textarea = false,
     bare = false,
     disabled = false,
     readOnly = false,
+    rows = 3,
   }) => {
+    if (textarea) {
+      const cls = ["ss-textarea"];
+      if (bare) cls.push("ss-textarea--bare");
+      const attrs = [
+        `class="${cls.join(" ")}"`,
+        `rows="${rows}"`,
+        placeholder ? `placeholder="${placeholder}"` : "",
+        disabled ? "disabled" : "",
+        readOnly ? "readonly" : "",
+      ].filter(Boolean).join(" ");
+      return `<textarea ${attrs}>${value}</textarea>`;
+    }
     const cls = ["ss-input"];
     if (bare) cls.push("ss-input--bare");
     const attrs = [
@@ -53,6 +69,14 @@ export const ReadOnly = {
 
 export const Bare = {
   args: { value: "Borderless until focus", bare: true },
+};
+
+export const Textarea = {
+  args: { textarea: true, value: "This is multi-line\neditable text.", rows: 3 },
+};
+
+export const TextareaBare = {
+  args: { textarea: true, bare: true, value: "Bare multi-line (no chrome until focus)", rows: 3 },
 };
 
 export const Matrix = {
