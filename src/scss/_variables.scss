@@ -10,6 +10,11 @@
 // cross-referencing UE source while writing components stays trivial.
 // ============================================================================
 
+// Re-export Slate text-style mixins so any partial that already does
+// `@use "variables" as *` gets `@include ss-text-normal`, `ss-text-small`,
+// `ss-text-menu-heading`, `ss-text-section-label` automatically.
+@forward "text";
+
 
 // ----- Sass variables (compile-time use, e.g. inside component partials) ----
 

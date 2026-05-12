@@ -137,6 +137,7 @@ img, svg, video, canvas {
   color: var(--ss-foreground);
   font: inherit;
   font-size: var(--ss-font-size);
+  font-weight: var(--ss-weight);
   cursor: pointer;
   text-align: left;
   box-sizing: border-box;
@@ -246,6 +247,7 @@ img, svg, video, canvas {
   color: var(--ss-foreground);
   font: inherit;
   font-size: var(--ss-font-size);
+  font-weight: var(--ss-weight);
   cursor: pointer;
   box-sizing: border-box;
 }
@@ -518,6 +520,7 @@ img, svg, video, canvas {
   padding: 3px 8px 4px;
   font: inherit;
   font-size: var(--ss-font-size);
+  font-weight: var(--ss-weight);
   line-height: 1;
 }
 .ss-input::placeholder,
@@ -629,6 +632,7 @@ img, svg, video, canvas {
   color: var(--ss-foreground);
   font: inherit;
   font-size: var(--ss-font-size);
+  font-weight: var(--ss-weight);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -691,10 +695,11 @@ img, svg, video, canvas {
 .ss-label {
   display: inline-block;
   font-size: var(--ss-font-size-sm);
-  color: var(--ss-foreground);
-  margin-bottom: 4px;
+  font-weight: var(--ss-weight);
   text-transform: uppercase;
   letter-spacing: 0.04em;
+  color: var(--ss-foreground);
+  margin-bottom: 4px;
 }
 
 .ss-field {
@@ -706,10 +711,11 @@ img, svg, video, canvas {
 }
 .ss-field > .ss-label {
   margin: 0;
+  font-size: var(--ss-font-size);
+  font-weight: var(--ss-weight);
   text-transform: none;
   letter-spacing: 0;
   color: var(--ss-foreground);
-  font-size: var(--ss-font-size);
   text-align: right;
 }
 
@@ -866,6 +872,7 @@ img, svg, video, canvas {
   vertical-align: middle;
   font-family: var(--ss-font);
   font-size: var(--ss-font-size);
+  font-weight: var(--ss-weight);
   line-height: 1;
 }
 .ss-segmented > input[type=radio] {
@@ -1103,6 +1110,7 @@ img, svg, video, canvas {
   color: var(--ss-foreground-hover);
   font: inherit;
   font-size: var(--ss-font-size);
+  font-weight: var(--ss-weight);
   line-height: 1;
   text-align: left;
   border: 0;
@@ -1148,6 +1156,7 @@ img, svg, video, canvas {
   color: var(--ss-foreground);
   font: inherit;
   font-size: var(--ss-font-size);
+  font-weight: var(--ss-weight);
   cursor: pointer;
 }
 .ss-menubar__item:hover {
@@ -1179,6 +1188,7 @@ img, svg, video, canvas {
   height: auto;
   color: var(--ss-foreground);
   font-size: var(--ss-font-size);
+  font-weight: var(--ss-weight);
   line-height: 1;
 }
 .ss-menu--submenu {
@@ -1194,8 +1204,8 @@ img, svg, video, canvas {
   font-size: 9px;
   font-weight: var(--ss-weight-bold);
   letter-spacing: 0.06em;
-  color: var(--ss-white-25);
   text-transform: uppercase;
+  color: var(--ss-white-25);
 }
 .ss-menu__heading::after {
   content: "";
@@ -1225,6 +1235,7 @@ img, svg, video, canvas {
   color: var(--ss-foreground-hover);
   font: inherit;
   font-size: var(--ss-font-size);
+  font-weight: var(--ss-weight);
   cursor: pointer;
   text-align: left;
   box-sizing: border-box;
@@ -1557,6 +1568,7 @@ img, svg, video, canvas {
   background: transparent;
   color: var(--ss-foreground);
   font-size: var(--ss-font-size);
+  font-weight: var(--ss-weight);
   line-height: 1;
   cursor: pointer;
   user-select: none;

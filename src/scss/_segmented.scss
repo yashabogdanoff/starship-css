@@ -60,7 +60,7 @@
   border-radius: var(--ss-radius);
   vertical-align: middle;
   font-family: var(--ss-font);
-  font-size: var(--ss-font-size);
+  @include ss-text-normal;
   line-height: 1;
 
   // Hidden but focusable native radios drive the :checked state.

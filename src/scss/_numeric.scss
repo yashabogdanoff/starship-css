@@ -117,8 +117,7 @@
   cursor: ew-resize;
   user-select: none;
   font-family: var(--ss-font);
-  font-size: var(--ss-font-size);
-  font-weight: var(--ss-weight);
+  @include ss-text-normal;
   font-variant-numeric: tabular-nums;             // equal-width digits
   line-height: 1;
   color: var(--ss-foreground-hover);              // ForegroundHover #FFFFFF

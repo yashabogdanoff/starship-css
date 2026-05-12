@@ -42,7 +42,7 @@
   border-radius: var(--ss-radius);
   padding: 3px 8px 4px;
   font: inherit;
-  font-size: var(--ss-font-size);
+  @include ss-text-normal;
   line-height: 1;
 
   &::placeholder {
@@ -216,7 +216,7 @@
   padding: 0;
   color: var(--ss-foreground);
   font: inherit;
-  font-size: var(--ss-font-size);
+  @include ss-text-normal;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -335,11 +335,9 @@
 
 .ss-label {
   display: inline-block;
-  font-size: var(--ss-font-size-sm);
+  @include ss-text-section-label;        // Slate PropertyLabel — 11 px uppercase tracked
   color: var(--ss-foreground);
   margin-bottom: 4px;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
 }
 
 .ss-field {
@@ -350,11 +348,13 @@
   margin-bottom: 4px;
 
   > .ss-label {
+    // .ss-field flips the inner label back to body-text (no uppercase /
+    // tracking) — the row format is "Label : Value", not a section header.
     margin: 0;
+    @include ss-text-normal;
     text-transform: none;
     letter-spacing: 0;
     color: var(--ss-foreground);
-    font-size: var(--ss-font-size);
     text-align: right;
   }
 }

@@ -78,9 +78,8 @@
   background: var(--ss-secondary);       // #383838
   color: var(--ss-foreground-hover);     // #FFFFFF (button text on dark surface)
   font-family: inherit;
-  font-size: var(--ss-font-size);        // 13 px
-  font-weight: var(--ss-weight);         // 400 — Starship Regular, not Bold
-  line-height: 16px;                     // matches LeftRightLabel HeightOverride(16)
+  @include ss-text-normal;               // Slate ButtonText — 13 px Regular
+  line-height: 16px;                     // LeftRightLabel HeightOverride
   text-decoration: none;
   white-space: nowrap;
   user-select: none;

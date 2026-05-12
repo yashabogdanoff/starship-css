@@ -139,7 +139,7 @@
   border-radius: 4px 4px 0 0;        // BOX_BRUSH 4/20 → 4 px, open-bottom
   background: transparent;           // NormalBrush = NoResource
   color: var(--ss-foreground);       // NormalFG = Foreground
-  font-size: var(--ss-font-size);
+  @include ss-text-normal;
   line-height: 1;
   cursor: pointer;
   user-select: none;

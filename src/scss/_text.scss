@@ -1,0 +1,58 @@
+// ============================================================================
+// _text.scss — Slate FTextBlockStyle named text styles as SCSS mixins.
+//
+// Mirrors what UE Slate exposes via `FAppStyle::Get().GetWidgetStyle(...)`:
+// each named text style is a {font-size + font-weight + letter-spacing +
+// text-transform} bundle. Widgets `@include` the matching mixin instead of
+// repeating the same 2-4 declarations.
+//
+// `line-height` and `color` are NOT included — they're caller-specific
+// (button uses 16 px, menu uses 1; color depends on the surrounding paint).
+// `font-family` is NOT included either — it cascades from <body> in
+// `_reset.scss` and form-control inherit (`button, input, ...` rule).
+//
+// This file emits no CSS rules on its own. Forward-imported via
+// `_variables.scss` so any partial that already does `@use "variables" as *`
+// gets these mixins automatically — no separate import required.
+//
+// Slate source mapping:
+//   NormalText            StarshipCoreStyle.cpp:NormalText (Roboto 10pt)
+//   SmallText             StarshipCoreStyle.cpp:SmallText  (Roboto 8pt)
+//   MenuHeading           Menu.Heading.Font + LetterSpacing 250 UE units
+//   PropertyLabel         small-uppercase-tracked for property panels
+// ============================================================================
+
+// NormalText — Slate's default body text style. Roboto 10pt → 13 px Regular.
+// Used by: .ss-btn, .ss-combo, .ss-input, .ss-textarea, .ss-menu__entry,
+// .ss-menubar__item, .ss-numeric__input, .ss-segmented, .ss-tab, .ss-toolbar__btn.
+@mixin ss-text-normal {
+  font-size: var(--ss-font-size);
+  font-weight: var(--ss-weight);
+}
+
+// SmallText — Slate's small label style. Roboto 8pt → 11 px Regular.
+// Used by: .ss-label, .ss-tab--minor label.
+@mixin ss-text-small {
+  font-size: var(--ss-font-size-sm);
+  font-weight: var(--ss-weight);
+}
+
+// MenuHeading — section header inside an .ss-menu popover. Roboto Bold 7pt →
+// 9 px Bold uppercase, 0.06em letter-spacing.
+// Used by: .ss-menu__heading.
+@mixin ss-text-menu-heading {
+  font-size: 9px;
+  font-weight: var(--ss-weight-bold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+// PropertyLabel — small uppercase tracked label, paired with form fields
+// or property-panel rows. Roboto 8pt Regular uppercase, 0.04em.
+// Used by: .ss-label.
+@mixin ss-text-section-label {
+  font-size: var(--ss-font-size-sm);
+  font-weight: var(--ss-weight);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}

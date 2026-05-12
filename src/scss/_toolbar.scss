@@ -97,7 +97,7 @@
   background: transparent;
   color: var(--ss-foreground);
   font: inherit;
-  font-size: var(--ss-font-size);
+  @include ss-text-normal;
   cursor: pointer;
   text-align: left;
   box-sizing: border-box;
@@ -262,7 +262,7 @@
   background: transparent;
   color: var(--ss-foreground);
   font: inherit;
-  font-size: var(--ss-font-size);
+  @include ss-text-normal;
   cursor: pointer;
   box-sizing: border-box;
 }

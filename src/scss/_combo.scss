@@ -84,8 +84,7 @@
   display: inline-block;
   vertical-align: middle;
   font-family: var(--ss-font);
-  font-size: var(--ss-font-size);
-  font-weight: var(--ss-weight);
+  @include ss-text-normal;
   line-height: 1;
   color: var(--ss-foreground);
 }
@@ -284,7 +283,7 @@
   background: transparent;            // Even/Odd Normal = NoResource
   color: var(--ss-foreground-hover);  // ComboBoxRow.TextColor = White
   font: inherit;
-  font-size: var(--ss-font-size);
+  @include ss-text-normal;
   line-height: 1;
   text-align: left;
   border: 0;

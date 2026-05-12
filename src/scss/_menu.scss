@@ -89,7 +89,7 @@
   border: 0;
   color: var(--ss-foreground);
   font: inherit;
-  font-size: var(--ss-font-size);
+  @include ss-text-normal;
   cursor: pointer;
 
   &:hover {
@@ -140,7 +140,7 @@
   // menu separators / heading need Foreground (#C0C0C0) — set the base text
   // colour here so .ss-menu__heading inherits the right idle tone.
   color: var(--ss-foreground);
-  font-size: var(--ss-font-size);
+  @include ss-text-normal;
   line-height: 1;
 
   // Submenu — opens to the RIGHT of the parent entry, top-aligned. Overrides
@@ -160,11 +160,8 @@
   display: flex;
   align-items: center;
   padding: 6px 12px;                                       // Heading.Padding
-  font-size: 9px;
-  font-weight: var(--ss-weight-bold);
-  letter-spacing: 0.06em;
+  @include ss-text-menu-heading;                           // 9 px Bold 0.06em uppercase
   color: var(--ss-white-25);
-  text-transform: uppercase;
 
   &::after {
     content: '';
@@ -211,7 +208,7 @@
   // gray in idle and white only when hovered/open.
   color: var(--ss-foreground-hover);
   font: inherit;
-  font-size: var(--ss-font-size);
+  @include ss-text-normal;
   cursor: pointer;
   text-align: left;
   // Don't bleed beyond the menu's bordered edge.
