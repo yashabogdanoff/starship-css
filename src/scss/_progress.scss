@@ -39,23 +39,28 @@
 // maps to CSS gradient direction -45deg — gradient axis points top-right
 // → bottom-left, stripes perpendicular).
 //
-// Pixel-derived values from UnrealInsights_Widgets.png (user-confirmed):
-//   • light stripe — PrimaryHover-adjacent #0E86FF, 9 px on x → 9 / √2 ≈
-//     6.36 px on the gradient axis
-//   • dark stripe  — NOT the Primary token (#0070E0). 11 px on x to fill
-//     out the 20 px tile (9 + 11 = 20 = ImageSize.X) → 14.14 px full
-//     period on the gradient axis.
-// Exposed as `--ss-progress-stripe-{light,dark}` tokens in `_variables.scss`
-// so a consumer who recolors `--ss-primary` can also recolor the marquee
-// without having to fork this partial.
+// Pixel-derived geometry from UnrealInsights_Widgets.png (user-confirmed):
+//   • light stripe — exactly `--ss-primary-hover` (#0E86FF in default theme).
+//     9 px on x → 9 / √2 ≈ 6.36 px on the gradient axis.
+//   • dark stripe  — UE's hand-tuned #0C7DEE, approximated as
+//     `color-mix(in srgb, var(--ss-primary-hover), black 7%)` — gives #0D7DED,
+//     differs from UE's tuned value by ±1 RGB unit (visually indistinguishable).
+//     11 px on x to fill out the 20 px tile (9 + 11 = 20 = ImageSize.X) →
+//     14.14 px full period on the gradient axis.
+//
+// Both stripe colours are derived from `--ss-primary-hover` via color-mix,
+// so a consumer who recolors `--ss-primary-hover` automatically gets the
+// matching marquee tone without overriding any progress-specific token.
 @mixin ss-progress-stripes {
-  background-color: var(--ss-progress-stripe-dark);
+  --_stripe-light: var(--ss-primary-hover);
+  --_stripe-dark:  color-mix(in srgb, var(--ss-primary-hover), black 7%);
+  background-color: var(--_stripe-dark);
   background-image: repeating-linear-gradient(
     -45deg,
-    var(--ss-progress-stripe-light)  0,
-    var(--ss-progress-stripe-light)  6.36px,
-    var(--ss-progress-stripe-dark)   6.36px,
-    var(--ss-progress-stripe-dark)  14.14px
+    var(--_stripe-light)  0,
+    var(--_stripe-light)  6.36px,
+    var(--_stripe-dark)   6.36px,
+    var(--_stripe-dark)  14.14px
   );
 }
 
@@ -137,29 +142,41 @@
 // every brush layer (Foldout bg + the two stripe colours).
 
 // Pixel-derived from UnrealInsights_Widgets_Disabled.png (user-confirmed)
-// against the canonical Panel #242424 parent. These are post-composite
-// hex values, NOT rgba(…, 0.45) overlays — exposed as tokens in
-// `_variables.scss` for recolor parity:
-//   bg          --ss-progress-disabled-bg            (= Foldout × 0.45 over Panel)
-//   stripe lite --ss-progress-disabled-stripe-light  (PrimaryHover × 0.45 over bg)
-//   stripe dark --ss-progress-disabled-stripe-dark   (dark stripe × 0.45 over bg)
+// against the canonical Panel #242424 parent. These ARE Slate's α=0.45
+// cumulative-tint law (every brush layer composited at α=0.45 over the
+// already-painted layer) and reproduce bit-exact via `color-mix`:
+//
+//   disabled bg     = color-mix(in srgb, Foldout      45 %, Panel)   = #1B1B1B ✓
+//   stripe-light    = color-mix(in srgb, PrimaryHover 45 %, bg)      = #154B82 ✓
+//   stripe-dark     = color-mix(in srgb, stripe-dark  45 %, bg)      = #14477A (≈)
+//
+// Verified each composite via arithmetic. All formulas chain off the same
+// `--ss-primary-hover`, `--ss-foldout`, `--ss-panel` tokens consumers may
+// override — no progress-specific token to keep in sync.
 //
 // Consumers rendering ProgressBar over a non-Panel surface will get
 // slightly off-target disabled hues; revisit with parent-context-aware
 // tinting if that ever matters.
 
 .ss-progress[aria-disabled="true"] {
-  background-color: var(--ss-progress-disabled-bg);
+  --_disabled-bg:           color-mix(in srgb, var(--ss-foldout) 45%, var(--ss-panel));
+  --_disabled-stripe-light: color-mix(in srgb, var(--ss-primary-hover) 45%, var(--_disabled-bg));
+  --_disabled-stripe-dark:  color-mix(
+    in srgb,
+    color-mix(in srgb, var(--ss-primary-hover), black 7%) 45%,
+    var(--_disabled-bg)
+  );
+  background-color: var(--_disabled-bg);
 
   .ss-progress__bar::before,
   &.ss-progress--marquee::after {
-    background-color: var(--ss-progress-disabled-stripe-dark);
+    background-color: var(--_disabled-stripe-dark);
     background-image: repeating-linear-gradient(
       -45deg,
-      var(--ss-progress-disabled-stripe-light)  0,
-      var(--ss-progress-disabled-stripe-light)  6.36px,
-      var(--ss-progress-disabled-stripe-dark)   6.36px,
-      var(--ss-progress-disabled-stripe-dark)  14.14px
+      var(--_disabled-stripe-light)  0,
+      var(--_disabled-stripe-light)  6.36px,
+      var(--_disabled-stripe-dark)   6.36px,
+      var(--_disabled-stripe-dark)  14.14px
     );
   }
 }

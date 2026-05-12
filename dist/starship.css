@@ -58,11 +58,6 @@
   --ss-pad-x: 12px;
   --ss-pad-y: 4px;
   --ss-transition: 100ms ease-out;
-  --ss-progress-stripe-light: #0E86FF;
-  --ss-progress-stripe-dark: #0C7DEE;
-  --ss-progress-disabled-bg: #1B1B1B;
-  --ss-progress-disabled-stripe-light: #154B82;
-  --ss-progress-disabled-stripe-dark: #14477A;
 }
 
 :root.ss-os-win {
@@ -1526,8 +1521,10 @@ img, svg, video, canvas {
   left: -20px;
   width: calc(100% + 20px);
   height: 100%;
-  background-color: var(--ss-progress-stripe-dark);
-  background-image: repeating-linear-gradient(-45deg, var(--ss-progress-stripe-light) 0, var(--ss-progress-stripe-light) 6.36px, var(--ss-progress-stripe-dark) 6.36px, var(--ss-progress-stripe-dark) 14.14px);
+  --_stripe-light: var(--ss-primary-hover);
+  --_stripe-dark: color-mix(in srgb, var(--ss-primary-hover), black 7%);
+  background-color: var(--_stripe-dark);
+  background-image: repeating-linear-gradient(-45deg, var(--_stripe-light) 0, var(--_stripe-light) 6.36px, var(--_stripe-dark) 6.36px, var(--_stripe-dark) 14.14px);
   animation: ss-progress-marquee 1s linear infinite;
   will-change: transform;
 }
@@ -1539,18 +1536,27 @@ img, svg, video, canvas {
   left: -20px;
   width: calc(100% + 20px);
   height: 100%;
-  background-color: var(--ss-progress-stripe-dark);
-  background-image: repeating-linear-gradient(-45deg, var(--ss-progress-stripe-light) 0, var(--ss-progress-stripe-light) 6.36px, var(--ss-progress-stripe-dark) 6.36px, var(--ss-progress-stripe-dark) 14.14px);
+  --_stripe-light: var(--ss-primary-hover);
+  --_stripe-dark: color-mix(in srgb, var(--ss-primary-hover), black 7%);
+  background-color: var(--_stripe-dark);
+  background-image: repeating-linear-gradient(-45deg, var(--_stripe-light) 0, var(--_stripe-light) 6.36px, var(--_stripe-dark) 6.36px, var(--_stripe-dark) 14.14px);
   animation: ss-progress-marquee 1s linear infinite;
   will-change: transform;
 }
 
 .ss-progress[aria-disabled=true] {
-  background-color: var(--ss-progress-disabled-bg);
+  --_disabled-bg: color-mix(in srgb, var(--ss-foldout) 45%, var(--ss-panel));
+  --_disabled-stripe-light: color-mix(in srgb, var(--ss-primary-hover) 45%, var(--_disabled-bg));
+  --_disabled-stripe-dark: color-mix(
+    in srgb,
+    color-mix(in srgb, var(--ss-primary-hover), black 7%) 45%,
+    var(--_disabled-bg)
+  );
+  background-color: var(--_disabled-bg);
 }
 .ss-progress[aria-disabled=true] .ss-progress__bar::before, .ss-progress[aria-disabled=true].ss-progress--marquee::after {
-  background-color: var(--ss-progress-disabled-stripe-dark);
-  background-image: repeating-linear-gradient(-45deg, var(--ss-progress-disabled-stripe-light) 0, var(--ss-progress-disabled-stripe-light) 6.36px, var(--ss-progress-disabled-stripe-dark) 6.36px, var(--ss-progress-disabled-stripe-dark) 14.14px);
+  background-color: var(--_disabled-stripe-dark);
+  background-image: repeating-linear-gradient(-45deg, var(--_disabled-stripe-light) 0, var(--_disabled-stripe-light) 6.36px, var(--_disabled-stripe-dark) 6.36px, var(--_disabled-stripe-dark) 14.14px);
 }
 
 .ss-tabs {

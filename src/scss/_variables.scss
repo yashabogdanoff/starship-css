@@ -182,19 +182,6 @@ $ss-transition:          100ms ease-out;
   --ss-pad-x:               #{$ss-pad-x};
   --ss-pad-y:               #{$ss-pad-y};
   --ss-transition:          #{$ss-transition};
-
-  // ----- Progress marquee stripes -------------------------------------
-  // Two close-but-distinct Primary tints make the diagonal marquee pattern
-  // readable. Pixel-derived from UnrealInsights_Widgets.png — see the
-  // commentary in `_progress.scss` for the geometry. Exposed as tokens so
-  // a consumer who recolors `--ss-primary` can also recolor the stripes
-  // (they are NOT auto-derived because the visual two-tone needs precise
-  // hand-picked offsets).
-  --ss-progress-stripe-light:           #0E86FF;    // close to Primary-hover
-  --ss-progress-stripe-dark:            #0C7DEE;    // close to Primary (NOT exact token)
-  --ss-progress-disabled-bg:            #1B1B1B;    // Foldout × 0.45 over Panel
-  --ss-progress-disabled-stripe-light:  #154B82;    // stripe-light × 0.45 over bg
-  --ss-progress-disabled-stripe-dark:   #14477A;    // stripe-dark × 0.45 over bg
 }
 
 // ----- Cross-OS font-weight compensation ------------------------------------
