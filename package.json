@@ -1,6 +1,6 @@
 {
   "name": "starship-css",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "CSS framework that styles HTML to look like the Unreal Engine 5 editor (Slate UI). Inspired by Unreal Engine — not affiliated with Epic Games.",
   "main": "dist/starship.css",
   "style": "dist/starship.css",
@@ -19,7 +19,9 @@
     "build:mirror-docs": "node -e \"const fs=require('fs');fs.rmSync('docs/dist',{recursive:true,force:true});fs.mkdirSync('docs/dist',{recursive:true});for(const f of fs.readdirSync('dist'))fs.copyFileSync('dist/'+f,'docs/dist/'+f);\"",
     "build": "npm run build:css && npm run build:css-min && npm run build:js && npm run build:js-min && npm run build:mirror-docs",
     "watch": "sass --watch src/scss/starship.scss dist/starship.css",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
   },
   "keywords": [
     "css",
@@ -32,10 +34,13 @@
   ],
   "license": "MIT",
   "devDependencies": {
+    "@storybook/html-vite": "^10.3.6",
     "cssnano": "^7.0.0",
     "postcss": "^8.4.0",
     "postcss-cli": "^11.0.0",
     "sass": "^1.77.0",
+    "storybook": "^10.3.6",
+    "storybook-addon-pseudo-states": "^10.3.6",
     "terser": "^5.47.1"
   }
 }

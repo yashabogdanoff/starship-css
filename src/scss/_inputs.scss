@@ -267,18 +267,19 @@
 
   .ss-input {
     // Glass at left = 4 (ImagePadding) + 14 (ImageSizeOverride) + 6 (gap to
-    // text) = 24 px reserved for the glass region.
-    // Clear at right = 4 (visual margin) + 18 (button hit-rect) + 6 = 28 px.
-    // Bump the inset by 4 px on each side so text/placeholder doesn't crash
-    // into the pill's curved corners.
-    padding: 3px 32px 4px 28px;
+    // text) = 24 px reserved for the glass region. Bump the left inset by
+    // 4 px so the placeholder doesn't crash into the pill's curved cap.
+    // Right inset stays at the default pill rounding — Slate's SSearchBox
+    // has no clear-X, so no reserved right gutter.
+    padding: 3px 12px 4px 28px;
     // Pill — Slate's 3-arg FSlateRoundedBoxBrush "rounds based on height".
     // 9999 px lets the browser clamp to height / 2 at any size.
     border-radius: 9999px;
   }
 
-  // Suppress Chromium's native <input type="search"> cancel button — we
-  // paint our own .ss-search__clear that obeys Slate's visibility rules.
+  // Suppress Chromium's native <input type="search"> cancel button.
+  // Slate's SSearchBox doesn't have a clear-X — we don't want the browser
+  // adding one either. The glass icon is the only chrome ornament.
   .ss-input::-webkit-search-cancel-button,
   .ss-input::-webkit-search-decoration {
     appearance: none;
@@ -318,59 +319,9 @@
             mask-position: center;
   }
 
-  // Clear button — visible only while the input has content. Pure-CSS
-  // visibility via :has(:not(:placeholder-shown)). Click behaviour wired
-  // by starship.js initSearchBoxes (clears value + refocuses input).
-  // Lucide `x` painted via CSS mask on a ::before pseudo so the parent
-  // <button>'s hover bg / focus ring still works independently of the X
-  // glyph paint.
-  &__clear {
-    position: absolute;
-    right: 4px;
-    top: 50%;
-    transform: translateY(-50%);
-    appearance: none;
-    background: transparent;
-    border: 0;
-    color: var(--ss-foreground);
-    width: 18px;
-    height: 18px;
-    border-radius: var(--ss-radius);
-    cursor: pointer;
-    display: none;
-    align-items: center;
-    justify-content: center;
-
-    &::before {
-      content: '';
-      width: 12px;
-      height: 12px;
-      background-color: currentColor;
-      --ss-clear-x-svg: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M18 6 6 18'/><path d='m6 6 12 12'/></svg>");
-      -webkit-mask-image: var(--ss-clear-x-svg);
-              mask-image: var(--ss-clear-x-svg);
-      -webkit-mask-size: contain;
-              mask-size: contain;
-      -webkit-mask-repeat: no-repeat;
-              mask-repeat: no-repeat;
-      -webkit-mask-position: center;
-              mask-position: center;
-    }
-
-    &:hover {
-      background: var(--ss-dropdown);
-      color: var(--ss-foreground-hover);
-    }
-  }
-
-  &:has(.ss-input:not(:placeholder-shown):not(:disabled)) &__clear {
-    display: inline-flex;
-  }
-
   // When the row is disabled, the framework's :disabled rules tint the
   // .ss-input itself; sync the glass icon's tint so it doesn't sit at full
-  // alpha next to a dimmed input. The clear button is hidden anyway via the
-  // :not(:disabled) clause above.
+  // alpha next to a dimmed input.
   &:has(.ss-input:disabled) &__icon {
     color: rgba(192, 192, 192, 0.45);
   }

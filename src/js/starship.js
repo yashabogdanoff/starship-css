@@ -5,8 +5,41 @@
  * small bits of behaviour that CSS can't do on its own:
  *
  *   1) Per-OS class on <html> for font-weight compensation (ss-os-{win|mac|…}).
- *   2) ComboBox open/close + selection wiring (.ss-combo[data-combo-target]).
+ *   2) Unified popover wiring for combos, menus, submenus, menubars, and
+ *      toolbar dropdowns (any element with `data-popover-target`).
  *   3) NumericEntryBox / SpinBox drag-to-change + click-to-edit (.ss-numeric).
+ *   4) Inline-editable text (`[data-inline-edit]`).
+ *   5) Toggle button aria-pressed flip (.ss-btn--toggle and friends).
+ *   6) Tab close-button wiring.
+ *
+ * Popover markup contract — one shape for combos, menus, toolbar dropdowns,
+ * and submenus alike. Trigger has `data-popover-target="<id>"`. Popover has
+ * `popover="manual"` + matching id and a `role` that determines behaviour
+ * (`listbox` → combo with option-select-and-writeback, `menu` → menu with
+ * cascading submenus / menubar group / parent search lock).
+ *
+ *   <!-- Combo -->
+ *   <div class="ss-combo">
+ *     <button class="ss-combo__trigger" type="button"
+ *             data-popover-target="my-combo" aria-haspopup="listbox">
+ *       <span class="ss-combo__label">Label</span>
+ *       <span class="ss-combo__chevron" aria-hidden="true"></span>
+ *     </button>
+ *     <div class="ss-popover ss-combo__menu" popover="manual" id="my-combo"
+ *          role="listbox">
+ *       <button class="ss-combo__option" type="button" role="option">A</button>
+ *       <button class="ss-combo__option" type="button" role="option">B</button>
+ *     </div>
+ *   </div>
+ *
+ *   <!-- Menu -->
+ *   <nav class="ss-menubar" aria-label="...">
+ *     <button class="ss-menubar__item" data-popover-target="menu-1"
+ *             aria-haspopup="menu">Menu 1</button>
+ *   </nav>
+ *   <div class="ss-popover ss-menu" popover="manual" id="menu-1" role="menu">
+ *     <button class="ss-menu__entry" type="button" role="menuitem">...</button>
+ *   </div>
  *
  * SpinBox markup contract (mirrors Slate's SSpinBox<float> constructor):
  *
@@ -21,29 +54,20 @@
  *     <input class="ss-numeric__input" type="text">
  *   </div>
  *
- * Mark up a combobox like Slate's SComboBox:
+ * Loading this script auto-wires every `[data-popover-target]` on the page:
+ * opens on mousedown (Slate's pattern), closes on outside-mousedown or
+ * Escape, sets `aria-selected` on combo options, writes label back into
+ * the combo trigger, cascades submenus, manages menubar activation mode,
+ * and locks parent-menu search while a submenu is open.
  *
- *   <div class="ss-combo">
- *     <button class="ss-combo__trigger" type="button"
- *             data-combo-target="my-combo" style="anchor-name: --my-combo;">
- *       <span class="ss-combo__label">Label</span>
- *       <span class="ss-combo__chevron" aria-hidden="true"><svg .../></span>
- *     </button>
- *     <div class="ss-combo__menu" popover="manual" id="my-combo"
- *          style="position-anchor: --my-combo;" role="listbox">
- *       <button class="ss-combo__option" type="button" role="option">A</button>
- *       <button class="ss-combo__option" type="button" role="option">B</button>
- *     </div>
- *   </div>
+ * Anchor-name / position-anchor for CSS Anchor Positioning are assigned
+ * programmatically from the `data-popover-target` value — no inline
+ * `style="anchor-name: ..."` required in HTML (CSP `style-src 'self'`
+ * compatible).
  *
- * Loading this script auto-wires every `.ss-combo__trigger[data-combo-target]`
- * on the page: opens on mousedown (Slate's pattern, not click=mouseup),
- * closes on outside-mousedown or Escape, sets aria-selected on the picked
- * row, and (for text triggers with a `.ss-combo__label`) writes the picked
- * row's text back into the trigger.
- *
- * If you'd rather wire it yourself, leave the `data-combo-target` attribute
- * off — this script ignores those.
+ * init* functions are idempotent: re-running them after dynamically adding
+ * markup wires only the new elements. Per-element guard via
+ * `data-ss-inited="popover"` (or similar) prevents double-binding.
  */
 (function () {
   'use strict';
@@ -70,66 +94,281 @@
   window.starship = window.starship || {};
   window.starship.os = os;
 
-  // ----- Combobox wiring ---------------------------------------------------
+  // ----- Popover wiring (combos + menus + submenus + menubars + dropdowns) -
   //
-  // The Popover API's default `popover` value is `auto` — it auto-dismisses
-  // on the next pointerdown whose target is outside the popover and its
-  // invoker. Without a `popovertarget` HTML attribute, the trigger is NOT
-  // an invoker, so auto-dismiss closes the popover immediately on mouseup.
-  // We use `popover="manual"` to disable that and implement dismissal here.
-  function initCombos() {
-    var combos = [];
-    var triggers = document.querySelectorAll(
-      '.ss-combo__trigger[data-combo-target]'
-    );
-    Array.prototype.forEach.call(triggers, function (trigger) {
-      var menu = document.getElementById(trigger.dataset.comboTarget);
-      if (!menu) return;
-      combos.push({ trigger: trigger, menu: menu });
+  // One function handles every `[data-popover-target]` on the page. Behaviour
+  // branches on the popover's `role`:
+  //
+  //   role="listbox"  → combo: option click sets aria-selected + writes the
+  //                      option's text back into `.ss-combo__label`, then
+  //                      closes the popover.
+  //   role="menu"     → menu: cascading submenus, menubar "activation mode"
+  //                      (hover-to-switch once first click activates the bar),
+  //                      parent-menu `.ss-menu__search` lock while a submenu
+  //                      is open, stack-close on regular-entry click.
+  //   any other role  → generic: open/close + outside-dismiss + Escape.
+  //
+  // Global single-menu rule: opening any top-level popover (menubar item or
+  // standalone trigger that's not inside another menu) closes every other
+  // open popover on the page, except submenus that are descendants of the
+  // newly-opened menu.
+  //
+  // Idempotency:
+  //   * `data-ss-inited="popover"` per trigger and per popover container
+  //     prevents double-binding when initPopovers() runs again after
+  //     dynamically added markup.
+  //   * The document-level `mousedown` / `keydown` listeners are attached
+  //     exactly once on first call (module-level singleton flag).
 
+  // Module-level state shared across re-invocations.
+  var pairs = [];                          // { trigger, menu }[]
+  var barStates = (typeof WeakMap === 'function') ? new WeakMap() : null;
+  var popoverGlobalsInited = false;
+
+  function getBarState(bar) {
+    if (!barStates) return { activated: false };
+    var s = barStates.get(bar);
+    if (!s) { s = { activated: false }; barStates.set(bar, s); }
+    return s;
+  }
+
+  // Close every open popover except `keep` and `keep`'s ancestors. When
+  // `keep` is null, every open popover gets hidden unconditionally.
+  function closeAllExcept(keep) {
+    pairs.forEach(function (p) {
+      if (p.menu === keep) return;
+      if (!p.menu.matches(':popover-open')) return;
+      if (keep && p.menu.contains(keep)) return;   // ancestor of `keep`
+      p.menu.hidePopover();
+    });
+  }
+
+  // Within `parentMenu`, close every open submenu except the one whose
+  // trigger is `except`. Used by submenu mouseenter and regular-entry hover
+  // (so the submenu doesn't linger after the cursor moves off its trigger).
+  function closeSiblingSubmenus(parentMenu, except) {
+    var triggers = parentMenu.querySelectorAll('[data-popover-target]');
+    Array.prototype.forEach.call(triggers, function (t) {
+      if (t === except) return;
+      var m = document.getElementById(t.dataset.popoverTarget);
+      if (m && m.matches(':popover-open')) m.hidePopover();
+    });
+  }
+
+  function initPopovers() {
+    var newTriggers = document.querySelectorAll(
+      '[data-popover-target]:not([data-ss-inited])'
+    );
+
+    Array.prototype.forEach.call(newTriggers, function (trigger) {
+      var targetId = trigger.dataset.popoverTarget;
+      var menu = document.getElementById(targetId);
+      if (!menu) return;
+
+      pairs.push({ trigger: trigger, menu: menu });
+
+      // CSS Anchor Positioning binding — assigned in JS so HTML doesn't need
+      // inline `style="anchor-name: ..."` / `position-anchor: ...` (which
+      // would break CSP `style-src 'self'`). The name is derived from
+      // `data-popover-target` so each trigger / popover pair is unique.
+      var anchorName = '--' + targetId;
+      trigger.style.setProperty('anchor-name', anchorName);
+      menu.style.setProperty('position-anchor', anchorName);
+
+      var bar = trigger.closest && trigger.closest('.ss-menubar');
+      var inParentMenu = !bar && trigger.closest && trigger.closest('.ss-menu');
+      var role = menu.getAttribute('role');
+
+      // Trigger mousedown — matches Slate's open-on-press (not mouseup).
       trigger.addEventListener('mousedown', function (e) {
         // preventDefault keeps focus from shifting and suppresses the
         // synthesised click event that would otherwise reach the popover
         // light-dismiss heuristics in user agents that still implement them.
         e.preventDefault();
-        if (menu.matches(':popover-open')) menu.hidePopover();
-        else menu.showPopover();
+        if (bar) {
+          var s = getBarState(bar);
+          if (menu.matches(':popover-open')) {
+            menu.hidePopover();
+            s.activated = false;
+          } else {
+            closeAllExcept(menu);
+            menu.showPopover();
+            s.activated = true;
+          }
+        } else if (inParentMenu) {
+          // Submenu trigger inside an .ss-menu — toggle in place. Parent
+          // menu must stay open; sibling submenus get closed by the hover
+          // handler below (and a re-click here won't reopen our own parent).
+          if (menu.matches(':popover-open')) menu.hidePopover();
+          else {
+            closeSiblingSubmenus(inParentMenu, trigger);
+            menu.showPopover();
+          }
+        } else {
+          // Standalone trigger (combo / toolbar combo / split-options).
+          // Enforce the global single-menu rule — opening one closes every
+          // other top-level popover.
+          if (menu.matches(':popover-open')) {
+            menu.hidePopover();
+          } else {
+            closeAllExcept(menu);
+            menu.showPopover();
+          }
+        }
       });
 
-      menu.addEventListener('mousedown', function (e) {
-        var opt = e.target.closest && e.target.closest('.ss-combo__option');
-        if (!opt) return;
-        e.preventDefault();
-        var others = menu.querySelectorAll('.ss-combo__option');
-        Array.prototype.forEach.call(others, function (o) {
-          o.removeAttribute('aria-selected');
+      // Hover behaviour:
+      //  * Bar items: once the bar has been activated by an initial click,
+      //    hovering a sibling bar item switches the open menu. Matches
+      //    Slate / native menubars.
+      //  * Submenu triggers: hover opens the submenu (no click needed) and
+      //    closes any sibling submenu of the same parent. Slate's cascading
+      //    menu behaviour.
+      if (bar) {
+        trigger.addEventListener('mouseenter', function () {
+          var s = getBarState(bar);
+          if (!s.activated) return;
+          if (menu.matches(':popover-open')) return;
+          closeAllExcept(menu);
+          menu.showPopover();
         });
-        opt.setAttribute('aria-selected', 'true');
-        var label = trigger.querySelector('.ss-combo__label');
-        if (label) label.textContent = opt.textContent;
-        menu.hidePopover();
-      });
+      } else if (inParentMenu) {
+        trigger.addEventListener('mouseenter', function () {
+          if (menu.matches(':popover-open')) return;
+          closeSiblingSubmenus(inParentMenu, trigger);
+          menu.showPopover();
+        });
+      }
+
+      // Popover-side wiring (option select / entry click / toggle handler).
+      // Guard so re-running initPopovers() doesn't double-bind menu listeners
+      // when only new triggers were added.
+      if (!menu.hasAttribute('data-ss-inited')) {
+        if (role === 'listbox') {
+          // Combo behaviour — option click selects + writes back + closes.
+          menu.addEventListener('mousedown', function (e) {
+            var opt = e.target.closest && e.target.closest('.ss-combo__option');
+            if (!opt) return;
+            e.preventDefault();
+            var others = menu.querySelectorAll('.ss-combo__option');
+            Array.prototype.forEach.call(others, function (o) {
+              o.removeAttribute('aria-selected');
+            });
+            opt.setAttribute('aria-selected', 'true');
+            var label = trigger.querySelector('.ss-combo__label');
+            if (label) label.textContent = opt.textContent;
+            menu.hidePopover();
+          });
+        } else if (role === 'menu') {
+          // Menu behaviour — regular-entry hover closes sibling submenus
+          // (so the submenu doesn't linger after the cursor leaves its
+          // trigger), regular-entry click closes the entire menu stack.
+          var regulars = menu.querySelectorAll(
+            '.ss-menu__entry:not([data-popover-target])'
+          );
+          Array.prototype.forEach.call(regulars, function (entry) {
+            entry.addEventListener('mouseenter', function () {
+              closeSiblingSubmenus(menu, null);
+            });
+            entry.addEventListener('click', function () {
+              var current = menu;
+              while (current && current.matches && current.matches(':popover-open')) {
+                current.hidePopover();
+                var ownerPair = pairs.find(function (pp) { return pp.menu === current; });
+                if (!ownerPair) break;
+                var ancestor = ownerPair.trigger.closest &&
+                               ownerPair.trigger.closest('.ss-menu');
+                current = ancestor || null;
+              }
+            });
+          });
+        }
+
+        // Toggle event — sync aria-expanded, handle parent search lock and
+        // cascade-close + bar deactivation on close. Applies to all roles
+        // (combo gets aria-expanded too, even though no cascade applies).
+        menu.addEventListener('toggle', function (e) {
+          var open = e.newState === 'open';
+          trigger.setAttribute('aria-expanded', open ? 'true' : 'false');
+
+          if (role !== 'menu') return;
+
+          // Slate locks the parent menu's filter while a submenu is open.
+          // Find the parent menu that owns this submenu's trigger and toggle
+          // its .ss-menu__search input's disabled flag in lockstep with the
+          // submenu's open state. When the submenu closes we only re-enable
+          // the search if no OTHER submenu of the same parent is still open.
+          var parentMenu = trigger.closest && trigger.closest('.ss-menu');
+          if (parentMenu) {
+            var search = parentMenu.querySelector(
+              '.ss-menu__search .ss-input, .ss-input.ss-menu__search'
+            );
+            if (search) {
+              if (open) {
+                search.disabled = true;
+              } else {
+                var anySubOpen = false;
+                var siblingTriggers = parentMenu.querySelectorAll(
+                  '[data-popover-target]'
+                );
+                Array.prototype.forEach.call(siblingTriggers, function (t) {
+                  var m = document.getElementById(t.dataset.popoverTarget);
+                  if (m && m.matches(':popover-open')) anySubOpen = true;
+                });
+                if (!anySubOpen) search.disabled = false;
+              }
+            }
+          }
+
+          if (open) return;
+          // Cascade-close any of this menu's submenus on close.
+          var children = menu.querySelectorAll('[data-popover-target]');
+          Array.prototype.forEach.call(children, function (t) {
+            var child = document.getElementById(t.dataset.popoverTarget);
+            if (child && child.matches(':popover-open')) child.hidePopover();
+          });
+          // Bar deactivation: if every menu in the parent bar is now
+          // closed, drop out of activation mode so future hovers don't
+          // re-open anything.
+          if (bar) {
+            var s = getBarState(bar);
+            var anyOpen = false;
+            var siblings = bar.querySelectorAll('[data-popover-target]');
+            Array.prototype.forEach.call(siblings, function (t) {
+              var m = document.getElementById(t.dataset.popoverTarget);
+              if (m && m.matches(':popover-open')) anyOpen = true;
+            });
+            if (!anyOpen) s.activated = false;
+          }
+        });
+
+        menu.setAttribute('data-ss-inited', 'popover');
+      }
+
+      trigger.setAttribute('data-ss-inited', 'popover');
     });
 
-    if (!combos.length) return;
-
-    // Click-outside (Slate's SMenuAnchor closes on any click outside the
-    // anchor or menu). We listen on `mousedown` to mirror Slate's mouseDown
-    // intent and to align with the trigger's own mousedown open behaviour.
-    document.addEventListener('mousedown', function (e) {
-      combos.forEach(function (c) {
-        if (!c.menu.matches(':popover-open')) return;
-        if (c.menu.contains(e.target) || c.trigger.contains(e.target)) return;
-        c.menu.hidePopover();
+    // Document-level listeners attached exactly once across the lifetime of
+    // the module. Re-running initPopovers() never adds duplicates.
+    if (!popoverGlobalsInited && pairs.length) {
+      document.addEventListener('mousedown', function (e) {
+        var inside = pairs.some(function (p) {
+          return p.menu.matches(':popover-open') &&
+            (p.menu.contains(e.target) || p.trigger.contains(e.target));
+        });
+        if (inside) return;
+        pairs.forEach(function (p) {
+          if (p.menu.matches(':popover-open')) p.menu.hidePopover();
+        });
       });
-    });
-    // Escape — close any open popover.
-    document.addEventListener('keydown', function (e) {
-      if (e.key !== 'Escape') return;
-      combos.forEach(function (c) {
-        if (c.menu.matches(':popover-open')) c.menu.hidePopover();
+      document.addEventListener('keydown', function (e) {
+        if (e.key !== 'Escape') return;
+        pairs.forEach(function (p) {
+          if (p.menu.matches(':popover-open')) p.menu.hidePopover();
+        });
       });
-    });
+      popoverGlobalsInited = true;
+    }
   }
 
   // ----- Numeric entry box wiring ------------------------------------------
@@ -391,239 +630,6 @@
     });
   }
 
-  // ----- Menu bar + pull-down menus + submenus -----------------------------
-  //
-  // Slate's MenuBar matches the platform menubar idiom:
-  //   • click a bar item     → opens its pull-down (and "activates" the bar)
-  //   • once activated, *hovering* a sibling bar item switches the open
-  //     menu — no second click — and clicking outside / Escape closes it
-  //     and deactivates the bar
-  //   • only one menu in a bar is ever open at a time; the bar maintains
-  //     an "activated" state while any of its menus are open
-  //   • inside a menu, clicking an entry that has data-menu-target opens
-  //     a submenu anchored to that entry; clicking a regular entry closes
-  //     the entire stack
-  //
-  // Triggers get aria-expanded toggled via the popover toggle event so
-  // the framework's Primary-fill paint (matching Slate's
-  // `WindowMenuBar.Button.SubMenuOpen`) stays in sync regardless of how
-  // the menu was opened or dismissed.
-  function initMenus() {
-    var allTriggers = document.querySelectorAll('[data-menu-target]');
-    if (!allTriggers.length) return;
-
-    var pairs = [];
-    // Group menubar siblings so we can implement the bar's "activation
-    // mode" (hover-to-switch). A trigger that's not inside a .ss-menubar
-    // is a standalone or submenu trigger — handled the simple way.
-    var bars = [];
-    document.querySelectorAll('.ss-menubar').forEach(function (bar) {
-      var triggers = Array.prototype.slice.call(
-        bar.querySelectorAll('[data-menu-target]')
-      );
-      bars.push({ bar: bar, triggers: triggers, activated: false });
-    });
-
-    function groupOf(trigger) {
-      for (var i = 0; i < bars.length; i++) {
-        if (bars[i].triggers.indexOf(trigger) >= 0) return bars[i];
-      }
-      return null;
-    }
-
-    // Global single-menu rule — opening any top-level trigger (menubar item
-    // or standalone combo / split-options) closes every other open popover on
-    // the page except submenus that are descendants of `keep` (a menu whose
-    // siblings/cousins remain open as part of the same cascade). When
-    // `keep` is null, every other popover gets hidden unconditionally.
-    function closeAllExcept(keep) {
-      pairs.forEach(function (p) {
-        if (p.menu === keep) return;
-        if (!p.menu.matches(':popover-open')) return;
-        if (keep && p.menu.contains(keep)) return;   // ancestor of `keep`
-        p.menu.hidePopover();
-      });
-    }
-
-    Array.prototype.forEach.call(allTriggers, function (trigger) {
-      var menu = document.getElementById(trigger.dataset.menuTarget);
-      if (!menu) return;
-      pairs.push({ trigger: trigger, menu: menu });
-
-      var group = groupOf(trigger);
-      // Submenu triggers sit inside an .ss-menu popover. Their open/close
-      // logic must NOT close the parent menu — only sibling submenus of the
-      // same parent.
-      var inParentMenu = !group && trigger.closest && trigger.closest('.ss-menu');
-
-      trigger.addEventListener('mousedown', function (e) {
-        e.preventDefault();   // matches Slate's open-on-press, not mouseup
-        if (group) {
-          if (menu.matches(':popover-open')) {
-            menu.hidePopover();
-            group.activated = false;
-          } else {
-            closeAllExcept(menu);
-            menu.showPopover();
-            group.activated = true;
-          }
-        } else if (inParentMenu) {
-          // Submenu trigger inside an .ss-menu — toggle in place. Parent
-          // menu must stay open; sibling submenus get closed by the hover
-          // handler below (and a re-click here won't reopen our own parent).
-          if (menu.matches(':popover-open')) menu.hidePopover();
-          else {
-            closeSiblingSubmenus(inParentMenu, trigger);
-            menu.showPopover();
-          }
-        } else {
-          // Standalone trigger (toolbar combo / split-options). Enforce the
-          // global single-menu rule — opening one closes every other.
-          if (menu.matches(':popover-open')) {
-            menu.hidePopover();
-          } else {
-            closeAllExcept(menu);
-            menu.showPopover();
-          }
-        }
-      });
-
-      // Bar-only: hover switches between sibling menus once the bar has
-      // been activated by an initial click. Hovering before any click in
-      // the bar does nothing — that mirrors Slate / native menubars.
-      if (group) {
-        trigger.addEventListener('mouseenter', function () {
-          if (!group.activated) return;
-          if (menu.matches(':popover-open')) return;
-          closeAllExcept(menu);
-          menu.showPopover();
-        });
-      } else if (inParentMenu) {
-        // Submenu trigger — hover opens the submenu (no click needed) and
-        // closes any sibling submenu of the same parent. Matches Slate's
-        // cascading menu behaviour.
-        trigger.addEventListener('mouseenter', function () {
-          if (menu.matches(':popover-open')) return;
-          closeSiblingSubmenus(inParentMenu, trigger);
-          menu.showPopover();
-        });
-      }
-    });
-
-    function closeSiblingSubmenus(parentMenu, except) {
-      var triggers = parentMenu.querySelectorAll('[data-menu-target]');
-      Array.prototype.forEach.call(triggers, function (t) {
-        if (t === except) return;
-        var m = document.getElementById(t.dataset.menuTarget);
-        if (m && m.matches(':popover-open')) m.hidePopover();
-      });
-    }
-
-    // Regular entries (no submenu) — hovering one closes any submenu open
-    // in the same parent menu. Slate users rely on this when scanning
-    // through entries; the submenu shouldn't linger after the cursor
-    // leaves its trigger.
-    document.querySelectorAll('.ss-menu').forEach(function (menu) {
-      var regulars = menu.querySelectorAll(
-        '.ss-menu__entry:not([data-menu-target])'
-      );
-      Array.prototype.forEach.call(regulars, function (entry) {
-        entry.addEventListener('mouseenter', function () {
-          closeSiblingSubmenus(menu, null);
-        });
-      });
-    });
-
-    pairs.forEach(function (p) {
-      p.menu.addEventListener('toggle', function (e) {
-        var open = e.newState === 'open';
-        p.trigger.setAttribute('aria-expanded', open ? 'true' : 'false');
-
-        // Slate locks the parent menu's filter while a submenu is open.
-        // Find the parent menu that owns this submenu's trigger and
-        // toggle its .ss-menu__search input's disabled flag in lockstep
-        // with the submenu's open state. When the submenu closes we only
-        // re-enable the search if no OTHER submenu of the same parent
-        // is still open.
-        var parentMenu = p.trigger.closest && p.trigger.closest('.ss-menu');
-        if (parentMenu) {
-          var search = parentMenu.querySelector(
-            '.ss-menu__search .ss-input, .ss-input.ss-menu__search'
-          );
-          if (search) {
-            if (open) {
-              search.disabled = true;
-            } else {
-              var anySubOpen = false;
-              var siblingTriggers = parentMenu.querySelectorAll(
-                '[data-menu-target]'
-              );
-              Array.prototype.forEach.call(siblingTriggers, function (t) {
-                var m = document.getElementById(t.dataset.menuTarget);
-                if (m && m.matches(':popover-open')) anySubOpen = true;
-              });
-              if (!anySubOpen) search.disabled = false;
-            }
-          }
-        }
-
-        if (open) return;
-        // Cascade-close any of this menu's submenus on close.
-        var children = p.menu.querySelectorAll('[data-menu-target]');
-        Array.prototype.forEach.call(children, function (t) {
-          var child = document.getElementById(t.dataset.menuTarget);
-          if (child && child.matches(':popover-open')) child.hidePopover();
-        });
-        // Bar deactivation: if every menu in the parent bar is now
-        // closed, drop out of activation mode so future hovers don't
-        // re-open anything.
-        var group = groupOf(p.trigger);
-        if (group) {
-          var anyOpen = group.triggers.some(function (t) {
-            var m = document.getElementById(t.dataset.menuTarget);
-            return m && m.matches(':popover-open');
-          });
-          if (!anyOpen) group.activated = false;
-        }
-      });
-
-      // Regular entries close the entire menu stack on click.
-      var entries = p.menu.querySelectorAll(
-        '.ss-menu__entry:not([data-menu-target])'
-      );
-      Array.prototype.forEach.call(entries, function (entry) {
-        entry.addEventListener('click', function () {
-          var current = p.menu;
-          while (current && current.matches && current.matches(':popover-open')) {
-            current.hidePopover();
-            var ownerPair = pairs.find(function (pp) { return pp.menu === current; });
-            if (!ownerPair) break;
-            var ancestor = ownerPair.trigger.closest &&
-                           ownerPair.trigger.closest('.ss-menu');
-            current = ancestor || null;
-          }
-        });
-      });
-    });
-
-    document.addEventListener('mousedown', function (e) {
-      var inside = pairs.some(function (p) {
-        return p.menu.matches(':popover-open') &&
-          (p.menu.contains(e.target) || p.trigger.contains(e.target));
-      });
-      if (inside) return;
-      pairs.forEach(function (p) {
-        if (p.menu.matches(':popover-open')) p.menu.hidePopover();
-      });
-    });
-    document.addEventListener('keydown', function (e) {
-      if (e.key !== 'Escape') return;
-      pairs.forEach(function (p) {
-        if (p.menu.matches(':popover-open')) p.menu.hidePopover();
-      });
-    });
-  }
-
   // ----- Tabs: close-button wiring -----------------------------------------
   //
   // Tab activation is pure CSS (radio-hack), but the close × on each tab
@@ -721,55 +727,25 @@
     });
   }
 
-  // ----- Search box clear button -------------------------------------------
-  //
-  // Slate's SSearchBox shows a glass icon on the left and a clear (×) button
-  // on the right that becomes visible while the field has content. The
-  // visibility is pure CSS (`:has(.ss-input:not(:placeholder-shown))`); this
-  // helper only wires the click behaviour — empty the field, dispatch an
-  // input event so listeners and the `:placeholder-shown` selector re-fire,
-  // and return focus to the input.
-  function initSearchBoxes() {
-    var clears = document.querySelectorAll('.ss-search__clear');
-    Array.prototype.forEach.call(clears, function (btn) {
-      btn.addEventListener('click', function (e) {
-        e.preventDefault();
-        var search = btn.closest && btn.closest('.ss-search');
-        if (!search) return;
-        var input = search.querySelector('.ss-input');
-        if (!input) return;
-        input.value = '';
-        input.dispatchEvent(new Event('input', { bubbles: true }));
-        input.focus();
-      });
-    });
-  }
-
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', function () {
-      initCombos();
+      initPopovers();
       initNumerics();
       initInlineEditables();
-      initSearchBoxes();
       initToggleButtons();
-      initMenus();
       initTabs();
     });
   } else {
-    initCombos();
+    initPopovers();
     initNumerics();
     initInlineEditables();
-    initSearchBoxes();
     initToggleButtons();
-    initMenus();
     initTabs();
   }
 
-  window.starship.initCombos = initCombos;
-  window.starship.initNumerics  = initNumerics;
+  window.starship.initPopovers = initPopovers;
+  window.starship.initNumerics = initNumerics;
   window.starship.initInlineEditables = initInlineEditables;
-  window.starship.initSearchBoxes = initSearchBoxes;
   window.starship.initToggleButtons = initToggleButtons;
-  window.starship.initMenus = initMenus;
   window.starship.initTabs = initTabs;
 })();

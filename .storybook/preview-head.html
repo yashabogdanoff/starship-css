@@ -1,0 +1,12 @@
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<!-- Storybook canvas = UE Slate panel surface (#242424). Widgets in UE
+     Starship Gallery sit on PANELS, not on the bare window background
+     (#151515) — the panel surface is the more representative canvas for
+     component preview. !important wins over dist/starship.css's
+     `body { background: var(--ss-background) }` rule. -->
+<style>
+  body { background: var(--ss-panel) !important; }
+</style>

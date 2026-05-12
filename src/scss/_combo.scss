@@ -251,37 +251,23 @@
   }
 }
 
-// ----- Popover menu ----------------------------------------------------------
+// ----- Popover menu (component-specific overrides) ---------------------------
 //
-// Uses the native HTML5 Popover API: trigger has [popovertarget="<id>"], the
-// menu has [popover] + matching id. We anchor the menu to the trigger via
-// CSS Anchor Positioning (Chromium 125+). For the showcase a tiny demo.js
-// snippet handles the open-state class on the trigger.
+// The shared chrome (background, border, position-anchor wiring) lives in
+// `_popover.scss` under the `.ss-popover` base class. Markup uses both
+// classes:
+//
+//   <div class="ss-popover ss-combo__menu" popover="manual"
+//        role="listbox" id="x">
+//
+// `position-anchor` and the trigger's matching `anchor-name` are set in JS
+// by `initPopovers()` from `data-popover-target` — no inline style required.
 .ss-combo__menu {
-  // Override the browser's default UA popover styles (margin:auto centering,
-  // border, padding). We paint the chrome ourselves.
-  margin: 0;
   padding: 0;
-  border: 1px solid var(--ss-dropdown-outline);    // #4C4C4C
-  border-radius: 0;                                // square corners (source: r=0)
-  background: var(--ss-dropdown);                  // #383838
-  color: var(--ss-foreground-hover);
-  font: inherit;
-  list-style: none;
   min-width: 118px;     // SimpleComboBox popover width from PNG; ComboBox grows naturally
   max-height: 50vh;
   overflow-y: auto;
-  box-sizing: border-box;
-  // Prevent layout-shift from the default popover :modal-like behaviour.
-  inset: unset;
-
-  // CSS Anchor Positioning — chains the menu's top-left to the trigger's
-  // bottom-left. Falls back gracefully on browsers without anchor support
-  // (the menu opens at the viewport top-left until JS positions it).
-  position: absolute;
-  position-try-fallbacks: flip-block;
-  top: anchor(bottom);
-  left: anchor(left);
+  list-style: none;
 }
 
 // ----- Menu row --------------------------------------------------------------

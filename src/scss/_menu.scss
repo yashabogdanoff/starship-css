@@ -26,32 +26,39 @@
 //     normal:    bg none
 //     hovered/pressed: bg Primary, fg ForegroundHover
 //
-// JS is wired by initMenus() in starship.js — click-driven open/close
-// matching Slate's pull-down behaviour (no hover-open). Submenus anchor
+// JS is wired by initPopovers() in starship.js (one function for combos,
+// menus, submenus, menubars, and toolbar dropdowns alike). Click-driven
+// open/close matching Slate's pull-down behaviour (no hover-open at the
+// bar level until first click; submenus do hover-open). Submenus anchor
 // to the parent entry and open to the right.
 //
-// Markup:
+// Markup — note the `ss-popover` base class on every menu container; the
+// shared chrome (background, border, position-anchor wiring) lives in
+// `_popover.scss`. `anchor-name` / `position-anchor` are set in JS from
+// `data-popover-target` — no inline style required.
+//
 //   <nav class="ss-menubar" aria-label="…">
-//     <button class="ss-menubar__item" data-menu-target="menu-1"
-//             aria-haspopup="menu" style="anchor-name: --menu-1;">Menu 1</button>
-//     <button class="ss-menubar__item" data-menu-target="menu-2"
-//             aria-haspopup="menu" style="anchor-name: --menu-2;">Menu 2</button>
+//     <button class="ss-menubar__item" data-popover-target="menu-1"
+//             aria-haspopup="menu">Menu 1</button>
+//     <button class="ss-menubar__item" data-popover-target="menu-2"
+//             aria-haspopup="menu">Menu 2</button>
 //   </nav>
-//   <div class="ss-menu" popover="manual" id="menu-1"
-//        role="menu" style="position-anchor: --menu-1;">
+//   <div class="ss-popover ss-menu" popover="manual" id="menu-1" role="menu">
 //     <div class="ss-menu__heading">Menu Header 1</div>
 //     <button class="ss-menu__entry" type="button" role="menuitem">
 //       <span class="ss-menu__icon">{svg}</span>
 //       <span class="ss-menu__label">Menu Entry 1</span>
 //     </button>
 //     ...
-//     <button class="ss-menu__entry" data-menu-target="submenu-1"
-//             aria-haspopup="menu" style="anchor-name: --submenu-1;">
+//     <button class="ss-menu__entry" data-popover-target="submenu-1"
+//             aria-haspopup="menu">
 //       <span class="ss-menu__icon"></span>
 //       <span class="ss-menu__label">Sub Menu 1</span>
 //       <span class="ss-menu__chevron">{svg}</span>
 //     </button>
 //   </div>
+//   <div class="ss-popover ss-menu ss-menu--submenu" popover="manual"
+//        id="submenu-1" role="menu"> ... </div>
 // ============================================================================
 
 @use "variables" as *;
@@ -119,36 +126,25 @@
   width: calc(100% - 8px);
 }
 
+// Component-specific overrides on top of `.ss-popover` (chrome lives there).
+// Default popover UA stylesheet leaves the element at its block-direction
+// intrinsic size (= containing-block width); we lock width so the menu sizes
+// to its longest entry instead of spanning the viewport.
 .ss-menu {
-  position: absolute;
-  margin: 0;
   padding: 4px 0;
-  // Default popover UA stylesheet leaves the element at its block-direction
-  // intrinsic size (= containing-block width) — set explicit max-content so
-  // the menu sizes to its longest entry instead of spanning the viewport.
   width: 200px;
   max-width: 90vw;
   height: auto;
-  background: var(--ss-dropdown);                          // Menu.Background
-  border: 1px solid var(--ss-dropdown-outline);            // Menu.Outline
-  border-radius: 0;                                        // 0 in source
+  // Menu entries paint white-on-Primary on hover; the menu chrome's default
+  // text colour comes from `.ss-popover` (ForegroundHover #FFFFFF) but the
+  // menu separators / heading need Foreground (#C0C0C0) — set the base text
+  // colour here so .ss-menu__heading inherits the right idle tone.
   color: var(--ss-foreground);
   font-size: var(--ss-font-size);
   line-height: 1;
-  inset: unset;                                            // override popover UA inset:0
-  display: block;                                          // explicit, popover default = block
 
-  // Default anchor pose — menu opens BELOW the trigger, left-aligned (used
-  // by the menubar pull-down). Submenu modifier below flips to right-of.
-  position-try-fallbacks: flip-block;
-  top: anchor(bottom);
-  left: anchor(left);
-
-  &:not(:popover-open) {
-    display: none;
-  }
-
-  // Submenu — opens to the RIGHT of the parent entry, top-aligned.
+  // Submenu — opens to the RIGHT of the parent entry, top-aligned. Overrides
+  // the default `top: anchor(bottom); left: anchor(left)` from `.ss-popover`.
   &--submenu {
     position-try-fallbacks: flip-inline;
     top: anchor(top);

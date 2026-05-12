@@ -1,0 +1,58 @@
+// ============================================================================
+// _popover.scss — Base popover chrome shared by combo dropdowns and menus.
+//
+// Applied as a class on every popover container alongside its component
+// class. Component-specific styling (row heights, padding, separators)
+// lives in `_combo.scss` / `_menu.scss`; this partial owns only the shared
+// chrome (background, border, position-anchor wiring).
+//
+// Markup:
+//   <div class="ss-popover ss-combo__menu" popover="manual"
+//        role="listbox" id="x">
+//   <div class="ss-popover ss-menu" popover="manual"
+//        role="menu" id="y">
+//   <div class="ss-popover ss-menu ss-menu--submenu" popover="manual"
+//        role="menu" id="z">
+//
+// `position-anchor` (and the matching `anchor-name` on the trigger) is set
+// programmatically by `initPopovers()` from each pair's
+// `data-popover-target`. No inline `style="position-anchor: ..."` is
+// required in HTML — CSP `style-src 'self'` compatible.
+//
+// Slate source for the shared chrome:
+//   StarshipCoreStyle.cpp:2440 — Menu.Background  = Dropdown (#383838)
+//   StarshipCoreStyle.cpp:2441 — Menu.Outline     = DropdownOutline (#4C4C4C) 1 px
+//   ComboBox MenuBorderBrush mirrors the same values.
+// ============================================================================
+
+@use "variables" as *;
+
+.ss-popover {
+  // Override the browser's default UA popover styles (margin:auto centering,
+  // inset:0 modal-like centering). We paint the chrome ourselves.
+  margin: 0;
+  inset: unset;
+  display: block;
+  box-sizing: border-box;
+
+  // Shared chrome — Menu.Background + Menu.Outline.
+  background: var(--ss-dropdown);                          // #383838
+  border: 1px solid var(--ss-dropdown-outline);            // #4C4C4C
+  border-radius: 0;                                        // UE source: r=0
+  color: var(--ss-foreground-hover);                       // white by default
+  font: inherit;
+
+  // CSS Anchor Positioning — chains the popover's top-left to its trigger's
+  // bottom-left by default. Falls back gracefully on browsers without anchor
+  // support (popover opens at viewport top-left until polyfill / JS-fallback
+  // positions it). Anchor support: Chromium 125+, Edge 125+; Firefox / Safari
+  // do not support it yet — see AUDIT.md critical #1.
+  position: absolute;
+  position-try-fallbacks: flip-block;
+  top: anchor(bottom);
+  left: anchor(left);
+
+  &:not(:popover-open) {
+    display: none;
+  }
+}

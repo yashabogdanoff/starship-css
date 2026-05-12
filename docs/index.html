@@ -470,17 +470,16 @@ SMALL TEXT BOLD CAPITAL</div>
           <div class="gallery-widgets__samples">
             <div class="ss-combo ss-combo--simple">
               <button class="ss-combo__trigger" type="button"
-                      data-combo-target="combo-simple-1"
-                      style="anchor-name: --combo-simple-1;"
+                      data-popover-target="combo-simple-1"
                       aria-haspopup="listbox" aria-label="SimpleComboBox">
                 <span class="ss-combo__icon" aria-hidden="true">
                   <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#gallery-icon-box"/></svg>
                 </span>
                 <span class="ss-combo__chevron" aria-hidden="true"></span>
               </button>
-              <div class="ss-combo__menu" popover="manual" id="combo-simple-1"
+              <div class="ss-popover ss-combo__menu" popover="manual" id="combo-simple-1"
                    role="listbox" aria-label="SimpleComboBox options"
-                   style="position-anchor: --combo-simple-1;">
+                   >
                 <button class="ss-combo__option" role="option" type="button">Option A One</button>
                 <button class="ss-combo__option" role="option" type="button">Option A Two</button>
                 <button class="ss-combo__option" role="option" type="button">Option A Three</button>
@@ -509,15 +508,14 @@ SMALL TEXT BOLD CAPITAL</div>
           <div class="gallery-widgets__samples">
             <div class="ss-combo">
               <button class="ss-combo__trigger" type="button"
-                      data-combo-target="combo-default-1"
-                      style="anchor-name: --combo-default-1;"
+                      data-popover-target="combo-default-1"
                       aria-haspopup="listbox">
                 <span class="ss-combo__label">Label</span>
                 <span class="ss-combo__chevron" aria-hidden="true"></span>
               </button>
-              <div class="ss-combo__menu" popover="manual" id="combo-default-1"
+              <div class="ss-popover ss-combo__menu" popover="manual" id="combo-default-1"
                    role="listbox" aria-label="ComboBox options"
-                   style="position-anchor: --combo-default-1;">
+                   >
                 <button class="ss-combo__option" role="option" type="button">Option A One</button>
                 <button class="ss-combo__option" role="option" type="button">Option A Two</button>
                 <button class="ss-combo__option" role="option" type="button">Option A Three</button>
@@ -699,7 +697,6 @@ SMALL TEXT BOLD CAPITAL</div>
               <span class="ss-search__icon" aria-hidden="true"></span>
               <input class="ss-input" type="search" placeholder="Search"
                      aria-label="SSearchBox">
-              <button class="ss-search__clear" type="button" aria-label="Clear"></button>
             </div>
           </div>
         </div>
@@ -745,12 +742,10 @@ SMALL TEXT BOLD CAPITAL</div>
           <div class="gallery-widgets__samples gallery-widgets__samples--w496">
             <nav class="ss-menubar" aria-label="Menu Bar">
               <button class="ss-menubar__item" type="button"
-                      data-menu-target="gallery-menu-1"
-                      style="anchor-name: --gallery-menu-1;"
+                      data-popover-target="gallery-menu-1"
                       aria-haspopup="menu" aria-expanded="false">Menu 1</button>
               <button class="ss-menubar__item" type="button"
-                      data-menu-target="gallery-menu-2"
-                      style="anchor-name: --gallery-menu-2;"
+                      data-popover-target="gallery-menu-2"
                       aria-haspopup="menu" aria-expanded="false">Menu 2</button>
             </nav>
           </div>
@@ -776,8 +771,7 @@ SMALL TEXT BOLD CAPITAL</div>
                 <span class="ss-toolbar__label">Toggle</span>
               </button>
               <button class="ss-toolbar__combo" type="button"
-                      data-menu-target="tb1-dropdown"
-                      style="anchor-name: --tb1-dropdown;"
+                      data-popover-target="tb1-dropdown"
                       aria-haspopup="menu" aria-expanded="false">
                 <span class="ss-toolbar__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gallery-icon-box"/></svg></span>
                 <span class="ss-toolbar__label">Dropdown</span>
@@ -790,8 +784,7 @@ SMALL TEXT BOLD CAPITAL</div>
                   <span class="ss-toolbar__label">Button</span>
                 </button>
                 <button class="ss-toolbar__split-options" type="button"
-                        data-menu-target="tb1-set1"
-                        style="anchor-name: --tb1-set1;"
+                        data-popover-target="tb1-set1"
                         aria-haspopup="menu" aria-expanded="false" aria-label="Options">
                   <span class="ss-toolbar__ellipsis" aria-hidden="true"></span>
                 </button>
@@ -802,8 +795,7 @@ SMALL TEXT BOLD CAPITAL</div>
                   <span class="ss-toolbar__label">Toggle</span>
                 </button>
                 <button class="ss-toolbar__split-options" type="button"
-                        data-menu-target="tb1-set2"
-                        style="anchor-name: --tb1-set2;"
+                        data-popover-target="tb1-set2"
                         aria-haspopup="menu" aria-expanded="false" aria-label="Options">
                   <span class="ss-toolbar__ellipsis" aria-hidden="true"></span>
                 </button>
@@ -831,8 +823,7 @@ SMALL TEXT BOLD CAPITAL</div>
                 <span class="ss-toolbar__label">Toggle</span>
               </button>
               <button class="ss-toolbar__combo" type="button"
-                      data-menu-target="tb2-dropdown"
-                      style="anchor-name: --tb2-dropdown;"
+                      data-popover-target="tb2-dropdown"
                       aria-haspopup="menu" aria-expanded="false">
                 <span class="ss-toolbar__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gallery-icon-box"/></svg></span>
                 <span class="ss-toolbar__label">Dropdown</span>
@@ -853,15 +844,14 @@ SMALL TEXT BOLD CAPITAL</div>
          expanded by hand. -->
 
     <!-- Menu 1 -->
-    <div class="ss-menu" popover="manual" id="gallery-menu-1"
+    <div class="ss-popover ss-menu" popover="manual" id="gallery-menu-1"
          role="menu" aria-label="Menu 1"
-         style="position-anchor: --gallery-menu-1;">
+         >
       <div class="ss-search ss-menu__search">
         <span class="ss-search__icon" aria-hidden="true"></span>
         <input class="ss-input" type="search"
                placeholder="Start typing to search"
                aria-label="Filter menu">
-        <button class="ss-search__clear" type="button" aria-label="Clear"></button>
       </div>
       <div class="ss-menu__heading">Menu Header 1</div>
       <button class="ss-menu__entry" type="button" role="menuitem">
@@ -881,8 +871,7 @@ SMALL TEXT BOLD CAPITAL</div>
         <span class="ss-menu__label">Menu Entry 4</span>
       </button>
       <button class="ss-menu__entry" type="button" role="menuitem"
-              data-menu-target="gallery-submenu-1"
-              style="anchor-name: --gallery-submenu-1;"
+              data-popover-target="gallery-submenu-1"
               aria-haspopup="menu" aria-expanded="false">
         <span class="ss-menu__label">Sub Menu 1</span>
         <span class="ss-menu__chevron"></span>
@@ -909,15 +898,14 @@ SMALL TEXT BOLD CAPITAL</div>
     <!-- Sub Menu 1 (shared by Menu 1's recursive submenu invocation).
          Slate's MakeMenuEntries emits 4 plain entries with the box-perspective
          icon — same as the top-level Entries 1–4. -->
-    <div class="ss-menu ss-menu--submenu" popover="manual" id="gallery-submenu-1"
+    <div class="ss-popover ss-menu ss-menu--submenu" popover="manual" id="gallery-submenu-1"
          role="menu" aria-label="Sub Menu 1"
-         style="position-anchor: --gallery-submenu-1;">
+         >
       <div class="ss-search ss-menu__search">
         <span class="ss-search__icon" aria-hidden="true"></span>
         <input class="ss-input" type="search"
                placeholder="Start typing to search"
                aria-label="Filter submenu">
-        <button class="ss-search__clear" type="button" aria-label="Clear"></button>
       </div>
       <button class="ss-menu__entry" type="button" role="menuitem">
         <span class="ss-menu__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gallery-icon-box"/></svg></span>
@@ -938,15 +926,14 @@ SMALL TEXT BOLD CAPITAL</div>
     </div>
 
     <!-- Menu 2 — identical content to Menu 1 via shared NewMenuDelegate. -->
-    <div class="ss-menu" popover="manual" id="gallery-menu-2"
+    <div class="ss-popover ss-menu" popover="manual" id="gallery-menu-2"
          role="menu" aria-label="Menu 2"
-         style="position-anchor: --gallery-menu-2;">
+         >
       <div class="ss-search ss-menu__search">
         <span class="ss-search__icon" aria-hidden="true"></span>
         <input class="ss-input" type="search"
                placeholder="Start typing to search"
                aria-label="Filter menu">
-        <button class="ss-search__clear" type="button" aria-label="Clear"></button>
       </div>
       <div class="ss-menu__heading">Menu Header 1</div>
       <button class="ss-menu__entry" type="button" role="menuitem">
@@ -966,8 +953,7 @@ SMALL TEXT BOLD CAPITAL</div>
         <span class="ss-menu__label">Menu Entry 4</span>
       </button>
       <button class="ss-menu__entry" type="button" role="menuitem"
-              data-menu-target="gallery-submenu-2"
-              style="anchor-name: --gallery-submenu-2;"
+              data-popover-target="gallery-submenu-2"
               aria-haspopup="menu" aria-expanded="false">
         <span class="ss-menu__label">Sub Menu 1</span>
         <span class="ss-menu__chevron"></span>
@@ -993,15 +979,14 @@ SMALL TEXT BOLD CAPITAL</div>
 
     <!-- Sub Menu 1 invoked from Menu 2. Slate uses the same MakeMenuEntries
          delegate again — same 4 plain entries with the box-perspective icon. -->
-    <div class="ss-menu ss-menu--submenu" popover="manual" id="gallery-submenu-2"
+    <div class="ss-popover ss-menu ss-menu--submenu" popover="manual" id="gallery-submenu-2"
          role="menu" aria-label="Sub Menu 1"
-         style="position-anchor: --gallery-submenu-2;">
+         >
       <div class="ss-search ss-menu__search">
         <span class="ss-search__icon" aria-hidden="true"></span>
         <input class="ss-input" type="search"
                placeholder="Start typing to search"
                aria-label="Filter submenu">
-        <button class="ss-search__clear" type="button" aria-label="Clear"></button>
       </div>
       <button class="ss-menu__entry" type="button" role="menuitem">
         <span class="ss-menu__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gallery-icon-box"/></svg></span>
@@ -1028,9 +1013,9 @@ SMALL TEXT BOLD CAPITAL</div>
          instance; ids are unique so initMenus() pairs each trigger with
          the right anchor. -->
 
-    <div class="ss-menu" popover="manual" id="tb1-dropdown"
+    <div class="ss-popover ss-menu" popover="manual" id="tb1-dropdown"
          role="menu" aria-label="Toolbar Dropdown"
-         style="position-anchor: --tb1-dropdown;">
+         >
       <button class="ss-menu__entry" type="button" role="menuitem">
         <span class="ss-menu__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gallery-icon-box"/></svg></span>
         <span class="ss-menu__label">Menu Entry 1</span>
@@ -1049,9 +1034,9 @@ SMALL TEXT BOLD CAPITAL</div>
       </button>
     </div>
 
-    <div class="ss-menu" popover="manual" id="tb1-set1"
+    <div class="ss-popover ss-menu" popover="manual" id="tb1-set1"
          role="menu" aria-label="Toolbar Settings 1"
-         style="position-anchor: --tb1-set1;">
+         >
       <button class="ss-menu__entry" type="button" role="menuitem">
         <span class="ss-menu__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gallery-icon-box"/></svg></span>
         <span class="ss-menu__label">Menu Entry 1</span>
@@ -1070,9 +1055,9 @@ SMALL TEXT BOLD CAPITAL</div>
       </button>
     </div>
 
-    <div class="ss-menu" popover="manual" id="tb1-set2"
+    <div class="ss-popover ss-menu" popover="manual" id="tb1-set2"
          role="menu" aria-label="Toolbar Settings 2"
-         style="position-anchor: --tb1-set2;">
+         >
       <button class="ss-menu__entry" type="button" role="menuitem">
         <span class="ss-menu__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gallery-icon-box"/></svg></span>
         <span class="ss-menu__label">Menu Entry 1</span>
@@ -1091,9 +1076,9 @@ SMALL TEXT BOLD CAPITAL</div>
       </button>
     </div>
 
-    <div class="ss-menu" popover="manual" id="tb2-dropdown"
+    <div class="ss-popover ss-menu" popover="manual" id="tb2-dropdown"
          role="menu" aria-label="Toolbar 2 Dropdown"
-         style="position-anchor: --tb2-dropdown;">
+         >
       <button class="ss-menu__entry" type="button" role="menuitem">
         <span class="ss-menu__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gallery-icon-box"/></svg></span>
         <span class="ss-menu__label">Menu Entry 1</span>

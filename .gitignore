@@ -7,3 +7,5 @@
 .playwright-mcp.config.json
 /.playwright-mcp
 /.claude
+/storybook-static
+/shots
