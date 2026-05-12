@@ -1,10 +1,17 @@
 // ============================================================================
-// _popover.scss — Base popover chrome shared by combo dropdowns and menus.
+// _popover.scss — Internal base chrome for popover-shaped widgets.
 //
-// Applied as a class on every popover container alongside its component
-// class. Component-specific styling (row heights, padding, separators)
-// lives in `_combo.scss` / `_menu.scss`; this partial owns only the shared
-// chrome (background, border, position-anchor wiring).
+// NOT a standalone widget — `.ss-popover` is a paint primitive consumers
+// never use directly. It's always paired with a semantic class:
+//
+//   `.ss-popover .ss-menu`         role="menu"     → menubar pull-down,
+//                                                    toolbar dropdown,
+//                                                    submenu, context menu
+//   `.ss-popover .ss-combo__menu`  role="listbox"  → SComboBox dropdown
+//
+// Component-specific styling (row heights, padding, separators, option
+// selection) lives in `_combo.scss` / `_menu.scss`. This partial owns only
+// the shared chrome: background, border, position-anchor wiring.
 //
 // Markup:
 //   <div class="ss-popover ss-combo__menu" popover="manual"

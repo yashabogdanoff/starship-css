@@ -1,5 +1,21 @@
 // ============================================================================
-// _menu.scss — MenuBar + pull-down menus + submenus.
+// _menu.scss — generic menu container.
+//
+// `.ss-menu` is the SAME widget UE Slate uses in every menu-shaped context:
+//
+//   • Menubar pull-down  (`<nav class="ss-menubar">` → `.ss-menu` popover)
+//   • Toolbar dropdown   (`.ss-toolbar__combo` → `.ss-menu` popover)
+//   • Split-button options (`.ss-toolbar__split-options` → `.ss-menu`)
+//   • Submenu            (entry with `data-popover-target` → nested `.ss-menu`)
+//   • Right-click context menu (host code calls `menu.showPopover()` at cursor)
+//
+// In Slate source they all flow through `FSlateApplication::PushMenu()` and
+// render the same `SMenuEntryBlock`. We mirror that — one CSS class, one
+// JS init path (`initPopovers` distinguishes via `role="menu"`).
+//
+// Combo dropdowns (`.ss-combo__menu`) look similar but are NOT `.ss-menu` —
+// they carry `role="listbox"` and have selection-with-writeback semantics
+// instead of action firing. Shared chrome comes from `.ss-popover`.
 //
 // Slate styles (StarshipCoreStyle.cpp:2437-2598):
 //

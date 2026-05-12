@@ -165,6 +165,83 @@ export const LongList = {
   `,
 };
 
+// `.ss-menu` is a *generic* menu container — the same widget powers
+// menubar pull-downs, toolbar dropdowns, submenus, AND right-click context
+// menus. This story demonstrates the context-menu pattern: right-click the
+// target area, `.ss-menu` opens at the cursor via the Popover API.
+//
+// We don't use `initPopovers` here because there's no `data-popover-target`
+// trigger — the menu is invoked imperatively from `contextmenu`. Outside-
+// click and Escape are wired locally; in a real consumer codebase you'd
+// likely route this through your own context-menu manager.
+export const ContextMenuExample = {
+  parameters: { layout: "padded" },
+  render: () => {
+    const root = document.createElement("div");
+    const id = "ctx-menu-" + Math.random().toString(36).slice(2, 9);
+    root.innerHTML = `
+      <div data-ctx-target
+           style="padding: 80px 24px;
+                  border: 1px dashed var(--ss-dropdown-outline);
+                  border-radius: var(--ss-radius);
+                  background: var(--ss-panel);
+                  color: var(--ss-foreground);
+                  font-family: var(--ss-font);
+                  font-size: 13px;
+                  text-align: center;
+                  user-select: none;
+                  cursor: context-menu;">
+        Right-click anywhere inside this area<br>
+        <span style="color: var(--ss-white-25); font-size: 11px;">
+          ESC or click outside dismisses. The same .ss-menu also serves as
+          menubar pull-down / toolbar dropdown / submenu.
+        </span>
+      </div>
+      <div class="ss-popover ss-menu" role="menu" popover="manual" id="${id}"
+           style="position: fixed; margin: 0; width: 200px;">
+        ${entry({ label: "Cut" })}
+        ${entry({ label: "Copy" })}
+        ${entry({ label: "Paste", disabled: true })}
+        <div class="ss-menu__separator"></div>
+        ${entry({ label: "Find" })}
+        ${entry({ label: "Replace" })}
+        <div class="ss-menu__separator"></div>
+        ${entry({ label: "Properties…" })}
+      </div>
+    `;
+    const target = root.querySelector("[data-ctx-target]");
+    const menu = root.querySelector(`#${id}`);
+
+    function open(e) {
+      e.preventDefault();
+      menu.style.left = e.clientX + "px";
+      menu.style.top = e.clientY + "px";
+      if (!menu.matches(":popover-open")) menu.showPopover();
+    }
+    function close() {
+      if (menu.matches(":popover-open")) menu.hidePopover();
+    }
+    function onDocDown(e) {
+      if (menu.matches(":popover-open") && !menu.contains(e.target)) close();
+    }
+    function onKey(e) {
+      if (e.key === "Escape") close();
+    }
+
+    target.addEventListener("contextmenu", open);
+    document.addEventListener("mousedown", onDocDown);
+    document.addEventListener("keydown", onKey);
+    // Regular entries (no submenu) dismiss the menu on activation.
+    menu.querySelectorAll(".ss-menu__entry").forEach((el) => {
+      el.addEventListener("click", () => {
+        if (el.getAttribute("aria-disabled") === "true") return;
+        close();
+      });
+    });
+    return root;
+  },
+};
+
 // ----- Force pseudo on entries -------------------------------------------
 
 export const HoverEntry = {
