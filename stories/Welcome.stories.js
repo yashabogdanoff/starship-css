@@ -167,8 +167,7 @@ export const Welcome = {
       ${SECTION_TITLE("Where to look")}
       <ul style="margin: 0; padding-left: 20px; font-size: 12px;">
         <li><a href="https://github.com/yashabogdanoff/starship-css" target="_blank" rel="noreferrer noopener" style="color: var(--ss-highlight); text-decoration: none;">github.com/yashabogdanoff/starship-css</a> — source.</li>
-        <li><a href="https://yashabogdanoff.github.io/starship-css/" target="_blank" rel="noreferrer noopener" style="color: var(--ss-highlight); text-decoration: none;">yashabogdanoff.github.io/starship-css</a> — overview gallery.</li>
-        <li>Storybook (you're here) — per-component state matrix and palette explorer.</li>
+        <li>Storybook (you're here) — per-component state matrix and palette explorer. Hosted at <a href="https://yashabogdanoff.github.io/starship-css/" target="_blank" rel="noreferrer noopener" style="color: var(--ss-highlight); text-decoration: none;">yashabogdanoff.github.io/starship-css</a>.</li>
       </ul>
 
     </div>

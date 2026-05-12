@@ -138,7 +138,7 @@ Most atom widgets (Button, Checkbox, Input, Radio, Segmented, Slider, Numeric, S
 
 ## Live demo
 
-[**yashabogdanoff.github.io/starship-css**](https://yashabogdanoff.github.io/starship-css/) — overview gallery rendered with the latest build.
+[**yashabogdanoff.github.io/starship-css**](https://yashabogdanoff.github.io/starship-css/) — Storybook, deployed via GitHub Actions on every push to `main`. Each component has a Default + Matrix story, an Accessibility panel (axe-core) and live Controls.
 
 ---
 

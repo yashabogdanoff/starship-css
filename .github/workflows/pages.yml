@@ -1,0 +1,70 @@
+# Build Storybook on push to main and publish it to GitHub Pages.
+#
+# Pages source must be set to "GitHub Actions" in repo Settings → Pages
+# (not "Deploy from a branch") — otherwise this workflow's artifact is
+# never picked up.
+#
+# Outputs:
+#   - storybook-static/  ← what gets published to https://USER.github.io/REPO/
+#
+# The legacy docs/ overview gallery stays in the repo as a dev visual-QA
+# reference but is NOT published anymore.
+
+name: Deploy Storybook to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow only one concurrent deployment; cancel in-progress runs when a
+# new push lands so we don't ship stale builds.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build dist/ (SCSS → CSS, JS bundle, sourcemaps)
+        run: npm run build
+
+      - name: Build Storybook static site
+        run: npm run build-storybook
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: storybook-static
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
