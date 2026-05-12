@@ -58,6 +58,11 @@
   --ss-pad-x: 12px;
   --ss-pad-y: 4px;
   --ss-transition: 100ms ease-out;
+  --ss-progress-stripe-light: #0E86FF;
+  --ss-progress-stripe-dark: #0C7DEE;
+  --ss-progress-disabled-bg: #1B1B1B;
+  --ss-progress-disabled-stripe-light: #154B82;
+  --ss-progress-disabled-stripe-dark: #14477A;
 }
 
 :root.ss-os-win {
@@ -115,6 +120,14 @@ img, svg, video, canvas {
   outline-offset: 1px;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
 .ss-toolbar {
   display: inline-flex;
   align-items: center;
@@ -1015,9 +1028,10 @@ img, svg, video, canvas {
   padding: 2px 8px 0;
 }
 .ss-combo__trigger:focus-visible {
-  outline: none;
-  border-color: var(--ss-hover);
+  border-color: var(--ss-primary);
   color: var(--ss-foreground-hover);
+  outline: 1px solid var(--ss-primary);
+  outline-offset: 1px;
 }
 .ss-combo__trigger:disabled, .ss-combo__trigger[aria-disabled=true] {
   cursor: not-allowed;
@@ -1074,10 +1088,15 @@ img, svg, video, canvas {
   background: transparent;
   border: none;
 }
-.ss-combo--simple > .ss-combo__trigger:hover, .ss-combo--simple > .ss-combo__trigger:focus-visible {
+.ss-combo--simple > .ss-combo__trigger:hover {
   background: var(--ss-dropdown);
   color: var(--ss-foreground-hover);
-  outline: none;
+}
+.ss-combo--simple > .ss-combo__trigger:focus-visible {
+  background: var(--ss-dropdown);
+  color: var(--ss-foreground-hover);
+  outline: 1px solid var(--ss-primary);
+  outline-offset: 1px;
 }
 .ss-combo--simple > .ss-combo__trigger:active {
   background: var(--ss-dropdown);
@@ -1507,8 +1526,8 @@ img, svg, video, canvas {
   left: -20px;
   width: calc(100% + 20px);
   height: 100%;
-  background-color: #0C7DEE;
-  background-image: repeating-linear-gradient(-45deg, #0E86FF 0, #0E86FF 6.36px, #0C7DEE 6.36px, #0C7DEE 14.14px);
+  background-color: var(--ss-progress-stripe-dark);
+  background-image: repeating-linear-gradient(-45deg, var(--ss-progress-stripe-light) 0, var(--ss-progress-stripe-light) 6.36px, var(--ss-progress-stripe-dark) 6.36px, var(--ss-progress-stripe-dark) 14.14px);
   animation: ss-progress-marquee 1s linear infinite;
   will-change: transform;
 }
@@ -1520,18 +1539,18 @@ img, svg, video, canvas {
   left: -20px;
   width: calc(100% + 20px);
   height: 100%;
-  background-color: #0C7DEE;
-  background-image: repeating-linear-gradient(-45deg, #0E86FF 0, #0E86FF 6.36px, #0C7DEE 6.36px, #0C7DEE 14.14px);
+  background-color: var(--ss-progress-stripe-dark);
+  background-image: repeating-linear-gradient(-45deg, var(--ss-progress-stripe-light) 0, var(--ss-progress-stripe-light) 6.36px, var(--ss-progress-stripe-dark) 6.36px, var(--ss-progress-stripe-dark) 14.14px);
   animation: ss-progress-marquee 1s linear infinite;
   will-change: transform;
 }
 
 .ss-progress[aria-disabled=true] {
-  background-color: #1B1B1B;
+  background-color: var(--ss-progress-disabled-bg);
 }
 .ss-progress[aria-disabled=true] .ss-progress__bar::before, .ss-progress[aria-disabled=true].ss-progress--marquee::after {
-  background-color: #14477A;
-  background-image: repeating-linear-gradient(-45deg, #154B82 0, #154B82 6.36px, #14477A 6.36px, #14477A 14.14px);
+  background-color: var(--ss-progress-disabled-stripe-dark);
+  background-image: repeating-linear-gradient(-45deg, var(--ss-progress-disabled-stripe-light) 0, var(--ss-progress-disabled-stripe-light) 6.36px, var(--ss-progress-disabled-stripe-dark) 6.36px, var(--ss-progress-disabled-stripe-dark) 14.14px);
 }
 
 .ss-tabs {
@@ -2024,6 +2043,390 @@ img, svg, video, canvas {
   display: block;
 }
 
+.ss-tabs > .ss-tabs__input:nth-of-type(17):checked ~ .ss-tab-well > .ss-tab:nth-of-type(17) {
+  background: var(--ss-panel);
+  color: var(--ss-white);
+}
+
+.ss-tabs > .ss-tabs__input:nth-of-type(17):checked ~ .ss-tab-well > .ss-tab--minor:nth-of-type(17)::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 4px;
+  right: 4px;
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--ss-primary) 50%, transparent);
+  pointer-events: none;
+}
+
+.ss-tabs > .ss-tabs__input:nth-of-type(17):checked ~ .ss-tab-well > .ss-tab:nth-of-type(17) .ss-tab__close {
+  visibility: visible;
+}
+
+.ss-tabs > .ss-tabs__input:nth-of-type(17):checked ~ .ss-tab-panel:nth-of-type(17) {
+  display: block;
+}
+
+.ss-tabs > .ss-tabs__input:nth-of-type(18):checked ~ .ss-tab-well > .ss-tab:nth-of-type(18) {
+  background: var(--ss-panel);
+  color: var(--ss-white);
+}
+
+.ss-tabs > .ss-tabs__input:nth-of-type(18):checked ~ .ss-tab-well > .ss-tab--minor:nth-of-type(18)::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 4px;
+  right: 4px;
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--ss-primary) 50%, transparent);
+  pointer-events: none;
+}
+
+.ss-tabs > .ss-tabs__input:nth-of-type(18):checked ~ .ss-tab-well > .ss-tab:nth-of-type(18) .ss-tab__close {
+  visibility: visible;
+}
+
+.ss-tabs > .ss-tabs__input:nth-of-type(18):checked ~ .ss-tab-panel:nth-of-type(18) {
+  display: block;
+}
+
+.ss-tabs > .ss-tabs__input:nth-of-type(19):checked ~ .ss-tab-well > .ss-tab:nth-of-type(19) {
+  background: var(--ss-panel);
+  color: var(--ss-white);
+}
+
+.ss-tabs > .ss-tabs__input:nth-of-type(19):checked ~ .ss-tab-well > .ss-tab--minor:nth-of-type(19)::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 4px;
+  right: 4px;
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--ss-primary) 50%, transparent);
+  pointer-events: none;
+}
+
+.ss-tabs > .ss-tabs__input:nth-of-type(19):checked ~ .ss-tab-well > .ss-tab:nth-of-type(19) .ss-tab__close {
+  visibility: visible;
+}
+
+.ss-tabs > .ss-tabs__input:nth-of-type(19):checked ~ .ss-tab-panel:nth-of-type(19) {
+  display: block;
+}
+
+.ss-tabs > .ss-tabs__input:nth-of-type(20):checked ~ .ss-tab-well > .ss-tab:nth-of-type(20) {
+  background: var(--ss-panel);
+  color: var(--ss-white);
+}
+
+.ss-tabs > .ss-tabs__input:nth-of-type(20):checked ~ .ss-tab-well > .ss-tab--minor:nth-of-type(20)::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 4px;
+  right: 4px;
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--ss-primary) 50%, transparent);
+  pointer-events: none;
+}
+
+.ss-tabs > .ss-tabs__input:nth-of-type(20):checked ~ .ss-tab-well > .ss-tab:nth-of-type(20) .ss-tab__close {
+  visibility: visible;
+}
+
+.ss-tabs > .ss-tabs__input:nth-of-type(20):checked ~ .ss-tab-panel:nth-of-type(20) {
+  display: block;
+}
+
+.ss-tabs > .ss-tabs__input:nth-of-type(21):checked ~ .ss-tab-well > .ss-tab:nth-of-type(21) {
+  background: var(--ss-panel);
+  color: var(--ss-white);
+}
+
+.ss-tabs > .ss-tabs__input:nth-of-type(21):checked ~ .ss-tab-well > .ss-tab--minor:nth-of-type(21)::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 4px;
+  right: 4px;
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--ss-primary) 50%, transparent);
+  pointer-events: none;
+}
+
+.ss-tabs > .ss-tabs__input:nth-of-type(21):checked ~ .ss-tab-well > .ss-tab:nth-of-type(21) .ss-tab__close {
+  visibility: visible;
+}
+
+.ss-tabs > .ss-tabs__input:nth-of-type(21):checked ~ .ss-tab-panel:nth-of-type(21) {
+  display: block;
+}
+
+.ss-tabs > .ss-tabs__input:nth-of-type(22):checked ~ .ss-tab-well > .ss-tab:nth-of-type(22) {
+  background: var(--ss-panel);
+  color: var(--ss-white);
+}
+
+.ss-tabs > .ss-tabs__input:nth-of-type(22):checked ~ .ss-tab-well > .ss-tab--minor:nth-of-type(22)::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 4px;
+  right: 4px;
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--ss-primary) 50%, transparent);
+  pointer-events: none;
+}
+
+.ss-tabs > .ss-tabs__input:nth-of-type(22):checked ~ .ss-tab-well > .ss-tab:nth-of-type(22) .ss-tab__close {
+  visibility: visible;
+}
+
+.ss-tabs > .ss-tabs__input:nth-of-type(22):checked ~ .ss-tab-panel:nth-of-type(22) {
+  display: block;
+}
+
+.ss-tabs > .ss-tabs__input:nth-of-type(23):checked ~ .ss-tab-well > .ss-tab:nth-of-type(23) {
+  background: var(--ss-panel);
+  color: var(--ss-white);
+}
+
+.ss-tabs > .ss-tabs__input:nth-of-type(23):checked ~ .ss-tab-well > .ss-tab--minor:nth-of-type(23)::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 4px;
+  right: 4px;
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--ss-primary) 50%, transparent);
+  pointer-events: none;
+}
+
+.ss-tabs > .ss-tabs__input:nth-of-type(23):checked ~ .ss-tab-well > .ss-tab:nth-of-type(23) .ss-tab__close {
+  visibility: visible;
+}
+
+.ss-tabs > .ss-tabs__input:nth-of-type(23):checked ~ .ss-tab-panel:nth-of-type(23) {
+  display: block;
+}
+
+.ss-tabs > .ss-tabs__input:nth-of-type(24):checked ~ .ss-tab-well > .ss-tab:nth-of-type(24) {
+  background: var(--ss-panel);
+  color: var(--ss-white);
+}
+
+.ss-tabs > .ss-tabs__input:nth-of-type(24):checked ~ .ss-tab-well > .ss-tab--minor:nth-of-type(24)::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 4px;
+  right: 4px;
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--ss-primary) 50%, transparent);
+  pointer-events: none;
+}
+
+.ss-tabs > .ss-tabs__input:nth-of-type(24):checked ~ .ss-tab-well > .ss-tab:nth-of-type(24) .ss-tab__close {
+  visibility: visible;
+}
+
+.ss-tabs > .ss-tabs__input:nth-of-type(24):checked ~ .ss-tab-panel:nth-of-type(24) {
+  display: block;
+}
+
+.ss-tabs > .ss-tabs__input:nth-of-type(25):checked ~ .ss-tab-well > .ss-tab:nth-of-type(25) {
+  background: var(--ss-panel);
+  color: var(--ss-white);
+}
+
+.ss-tabs > .ss-tabs__input:nth-of-type(25):checked ~ .ss-tab-well > .ss-tab--minor:nth-of-type(25)::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 4px;
+  right: 4px;
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--ss-primary) 50%, transparent);
+  pointer-events: none;
+}
+
+.ss-tabs > .ss-tabs__input:nth-of-type(25):checked ~ .ss-tab-well > .ss-tab:nth-of-type(25) .ss-tab__close {
+  visibility: visible;
+}
+
+.ss-tabs > .ss-tabs__input:nth-of-type(25):checked ~ .ss-tab-panel:nth-of-type(25) {
+  display: block;
+}
+
+.ss-tabs > .ss-tabs__input:nth-of-type(26):checked ~ .ss-tab-well > .ss-tab:nth-of-type(26) {
+  background: var(--ss-panel);
+  color: var(--ss-white);
+}
+
+.ss-tabs > .ss-tabs__input:nth-of-type(26):checked ~ .ss-tab-well > .ss-tab--minor:nth-of-type(26)::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 4px;
+  right: 4px;
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--ss-primary) 50%, transparent);
+  pointer-events: none;
+}
+
+.ss-tabs > .ss-tabs__input:nth-of-type(26):checked ~ .ss-tab-well > .ss-tab:nth-of-type(26) .ss-tab__close {
+  visibility: visible;
+}
+
+.ss-tabs > .ss-tabs__input:nth-of-type(26):checked ~ .ss-tab-panel:nth-of-type(26) {
+  display: block;
+}
+
+.ss-tabs > .ss-tabs__input:nth-of-type(27):checked ~ .ss-tab-well > .ss-tab:nth-of-type(27) {
+  background: var(--ss-panel);
+  color: var(--ss-white);
+}
+
+.ss-tabs > .ss-tabs__input:nth-of-type(27):checked ~ .ss-tab-well > .ss-tab--minor:nth-of-type(27)::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 4px;
+  right: 4px;
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--ss-primary) 50%, transparent);
+  pointer-events: none;
+}
+
+.ss-tabs > .ss-tabs__input:nth-of-type(27):checked ~ .ss-tab-well > .ss-tab:nth-of-type(27) .ss-tab__close {
+  visibility: visible;
+}
+
+.ss-tabs > .ss-tabs__input:nth-of-type(27):checked ~ .ss-tab-panel:nth-of-type(27) {
+  display: block;
+}
+
+.ss-tabs > .ss-tabs__input:nth-of-type(28):checked ~ .ss-tab-well > .ss-tab:nth-of-type(28) {
+  background: var(--ss-panel);
+  color: var(--ss-white);
+}
+
+.ss-tabs > .ss-tabs__input:nth-of-type(28):checked ~ .ss-tab-well > .ss-tab--minor:nth-of-type(28)::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 4px;
+  right: 4px;
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--ss-primary) 50%, transparent);
+  pointer-events: none;
+}
+
+.ss-tabs > .ss-tabs__input:nth-of-type(28):checked ~ .ss-tab-well > .ss-tab:nth-of-type(28) .ss-tab__close {
+  visibility: visible;
+}
+
+.ss-tabs > .ss-tabs__input:nth-of-type(28):checked ~ .ss-tab-panel:nth-of-type(28) {
+  display: block;
+}
+
+.ss-tabs > .ss-tabs__input:nth-of-type(29):checked ~ .ss-tab-well > .ss-tab:nth-of-type(29) {
+  background: var(--ss-panel);
+  color: var(--ss-white);
+}
+
+.ss-tabs > .ss-tabs__input:nth-of-type(29):checked ~ .ss-tab-well > .ss-tab--minor:nth-of-type(29)::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 4px;
+  right: 4px;
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--ss-primary) 50%, transparent);
+  pointer-events: none;
+}
+
+.ss-tabs > .ss-tabs__input:nth-of-type(29):checked ~ .ss-tab-well > .ss-tab:nth-of-type(29) .ss-tab__close {
+  visibility: visible;
+}
+
+.ss-tabs > .ss-tabs__input:nth-of-type(29):checked ~ .ss-tab-panel:nth-of-type(29) {
+  display: block;
+}
+
+.ss-tabs > .ss-tabs__input:nth-of-type(30):checked ~ .ss-tab-well > .ss-tab:nth-of-type(30) {
+  background: var(--ss-panel);
+  color: var(--ss-white);
+}
+
+.ss-tabs > .ss-tabs__input:nth-of-type(30):checked ~ .ss-tab-well > .ss-tab--minor:nth-of-type(30)::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 4px;
+  right: 4px;
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--ss-primary) 50%, transparent);
+  pointer-events: none;
+}
+
+.ss-tabs > .ss-tabs__input:nth-of-type(30):checked ~ .ss-tab-well > .ss-tab:nth-of-type(30) .ss-tab__close {
+  visibility: visible;
+}
+
+.ss-tabs > .ss-tabs__input:nth-of-type(30):checked ~ .ss-tab-panel:nth-of-type(30) {
+  display: block;
+}
+
+.ss-tabs > .ss-tabs__input:nth-of-type(31):checked ~ .ss-tab-well > .ss-tab:nth-of-type(31) {
+  background: var(--ss-panel);
+  color: var(--ss-white);
+}
+
+.ss-tabs > .ss-tabs__input:nth-of-type(31):checked ~ .ss-tab-well > .ss-tab--minor:nth-of-type(31)::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 4px;
+  right: 4px;
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--ss-primary) 50%, transparent);
+  pointer-events: none;
+}
+
+.ss-tabs > .ss-tabs__input:nth-of-type(31):checked ~ .ss-tab-well > .ss-tab:nth-of-type(31) .ss-tab__close {
+  visibility: visible;
+}
+
+.ss-tabs > .ss-tabs__input:nth-of-type(31):checked ~ .ss-tab-panel:nth-of-type(31) {
+  display: block;
+}
+
+.ss-tabs > .ss-tabs__input:nth-of-type(32):checked ~ .ss-tab-well > .ss-tab:nth-of-type(32) {
+  background: var(--ss-panel);
+  color: var(--ss-white);
+}
+
+.ss-tabs > .ss-tabs__input:nth-of-type(32):checked ~ .ss-tab-well > .ss-tab--minor:nth-of-type(32)::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 4px;
+  right: 4px;
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--ss-primary) 50%, transparent);
+  pointer-events: none;
+}
+
+.ss-tabs > .ss-tabs__input:nth-of-type(32):checked ~ .ss-tab-well > .ss-tab:nth-of-type(32) .ss-tab__close {
+  visibility: visible;
+}
+
+.ss-tabs > .ss-tabs__input:nth-of-type(32):checked ~ .ss-tab-panel:nth-of-type(32) {
+  display: block;
+}
+
 .ss-tab-panel {
   display: none;
   background: var(--ss-background);
@@ -2119,6 +2522,72 @@ img, svg, video, canvas {
   color: var(--ss-foreground-hover);
 }
 
+.ss-tabs > .ss-tabs__input:nth-of-type(17):checked ~ .ss-tab-well > .ss-tab--minor:nth-of-type(17) {
+  color: var(--ss-foreground-hover);
+}
+
+.ss-tabs > .ss-tabs__input:nth-of-type(18):checked ~ .ss-tab-well > .ss-tab--minor:nth-of-type(18) {
+  color: var(--ss-foreground-hover);
+}
+
+.ss-tabs > .ss-tabs__input:nth-of-type(19):checked ~ .ss-tab-well > .ss-tab--minor:nth-of-type(19) {
+  color: var(--ss-foreground-hover);
+}
+
+.ss-tabs > .ss-tabs__input:nth-of-type(20):checked ~ .ss-tab-well > .ss-tab--minor:nth-of-type(20) {
+  color: var(--ss-foreground-hover);
+}
+
+.ss-tabs > .ss-tabs__input:nth-of-type(21):checked ~ .ss-tab-well > .ss-tab--minor:nth-of-type(21) {
+  color: var(--ss-foreground-hover);
+}
+
+.ss-tabs > .ss-tabs__input:nth-of-type(22):checked ~ .ss-tab-well > .ss-tab--minor:nth-of-type(22) {
+  color: var(--ss-foreground-hover);
+}
+
+.ss-tabs > .ss-tabs__input:nth-of-type(23):checked ~ .ss-tab-well > .ss-tab--minor:nth-of-type(23) {
+  color: var(--ss-foreground-hover);
+}
+
+.ss-tabs > .ss-tabs__input:nth-of-type(24):checked ~ .ss-tab-well > .ss-tab--minor:nth-of-type(24) {
+  color: var(--ss-foreground-hover);
+}
+
+.ss-tabs > .ss-tabs__input:nth-of-type(25):checked ~ .ss-tab-well > .ss-tab--minor:nth-of-type(25) {
+  color: var(--ss-foreground-hover);
+}
+
+.ss-tabs > .ss-tabs__input:nth-of-type(26):checked ~ .ss-tab-well > .ss-tab--minor:nth-of-type(26) {
+  color: var(--ss-foreground-hover);
+}
+
+.ss-tabs > .ss-tabs__input:nth-of-type(27):checked ~ .ss-tab-well > .ss-tab--minor:nth-of-type(27) {
+  color: var(--ss-foreground-hover);
+}
+
+.ss-tabs > .ss-tabs__input:nth-of-type(28):checked ~ .ss-tab-well > .ss-tab--minor:nth-of-type(28) {
+  color: var(--ss-foreground-hover);
+}
+
+.ss-tabs > .ss-tabs__input:nth-of-type(29):checked ~ .ss-tab-well > .ss-tab--minor:nth-of-type(29) {
+  color: var(--ss-foreground-hover);
+}
+
+.ss-tabs > .ss-tabs__input:nth-of-type(30):checked ~ .ss-tab-well > .ss-tab--minor:nth-of-type(30) {
+  color: var(--ss-foreground-hover);
+}
+
+.ss-tabs > .ss-tabs__input:nth-of-type(31):checked ~ .ss-tab-well > .ss-tab--minor:nth-of-type(31) {
+  color: var(--ss-foreground-hover);
+}
+
+.ss-tabs > .ss-tabs__input:nth-of-type(32):checked ~ .ss-tab-well > .ss-tab--minor:nth-of-type(32) {
+  color: var(--ss-foreground-hover);
+}
+
 .ss-tab-panel--minor {
   background: var(--ss-panel);
 }
+
+/*# sourceMappingURL=starship.css.map */

@@ -383,9 +383,20 @@
   // position between MinSliderValue and MaxSliderValue (0–100%). The
   // .ss-numeric--no-spin modifier turns off drag and edit-mode entirely:
   // the input is always editable, no fill bar, hard-clamp on commit.
+  // Idempotency:
+  //   * Per-element `data-ss-inited="numeric"` skips already-wired widgets.
+  //   * `document.mousemove` and `mouseup` are attached once via module-
+  //     level singleton flag — re-running initNumerics() never duplicates.
+  //   * Per-element state lives in `numericStates` WeakMap so the singleton
+  //     document handlers can route the event to the currently-armed widget.
+  var DRAG_THRESHOLD_PX = 3;
+  var numericStates = (typeof WeakMap === 'function') ? new WeakMap() : null;
+  var numericArmed = null;
+  var numericGlobalsInited = false;
+
   function initNumerics() {
-    var DRAG_THRESHOLD_PX = 3;
-    var nums = document.querySelectorAll('.ss-numeric');
+    var nums = document.querySelectorAll('.ss-numeric:not([data-ss-inited])');
+
     Array.prototype.forEach.call(nums, function (num) {
       var input = num.querySelector('.ss-numeric__input');
       if (!input) return;
@@ -402,17 +413,10 @@
       var maxSlider = parseFloat(d.numMaxSlider);     if (isNaN(maxSlider)) maxSlider = isFinite(max) ? max : 1;
       var value     = parseFloat(d.numValue);         if (isNaN(value)) value = (minSlider + maxSlider) / 2;
 
-      var armed = false, dragging = false, editing = false;
-      var downX = 0, downValue = 0;
-
       // Slate uses two different clamps for two different gestures:
       //   * text-input commit → bounded by MinValue / MaxValue (hard limit).
       //   * drag             → bounded by the *intersection* of both pairs,
       //                        i.e. [max(Min, MinSlider), min(Max, MaxSlider)].
-      //                        Example (SSpinBox): Min=0, Max=500,
-      //                        MinSlider=-500, MaxSlider=500 → drag clamps
-      //                        to [0, 500], so the fill can't go below 50 %
-      //                        even though MinSlider would allow it.
       function clampHard(v) { return Math.max(min, Math.min(max, v)); }
       function clampDrag(v) {
         var lo = Math.max(min, minSlider);
@@ -426,9 +430,8 @@
         return Math.max(0, Math.min(1, t)) * 100;
       }
       function render() {
-        // Show ".0" on integer values (Slate's LexToString convention) and
-        // keep the rest at full precision the user requested.
-        var trimmed = String(parseFloat(value.toPrecision(10)));
+        // Show ".0" on integer values (Slate's LexToString convention).
+        var trimmed = String(parseFloat(state.value.toPrecision(10)));
         if (!/[.eE]/.test(trimmed)) trimmed += '.0';
         input.value = trimmed;
         if (fill) {
@@ -437,91 +440,59 @@
           // isn't pulled past the inset.
           var innerW = num.clientWidth - 2;
           if (innerW < 0) innerW = 0;
-          fill.style.width = (innerW * fillPercent(value) / 100) + 'px';
+          fill.style.width = (innerW * fillPercent(state.value) / 100) + 'px';
         }
       }
-
-      if (!noSpin) {
-      num.addEventListener('mousedown', function (e) {
-        if (input.disabled) return;  // <input disabled> halts drag/edit-mode
-        if (editing) return;     // let native text input handle clicks
-        if (e.button !== 0) return;
-        e.preventDefault();
-        downX = e.clientX;
-        downValue = value;
-        armed = true;
-        dragging = false;
-      });
-
-      document.addEventListener('mousemove', function (e) {
-        if (!armed || editing) return;
-        var dx = e.clientX - downX;
-        if (!dragging && Math.abs(dx) >= DRAG_THRESHOLD_PX) {
-          dragging = true;
-          num.classList.add('is-dragging');
-          // If the starting value sits outside the visible-fill range
-          // (text input could have committed 1000 with MaxSliderValue=500),
-          // snap it back to the nearest reachable edge AND re-anchor X to
-          // the current cursor. Without the re-anchor the cursor has to
-          // travel a "dead zone" of (originalValue - edge)/sensitivity
-          // pixels before value starts reacting again.
-          var clampedStart = clampDrag(value);
-          if (clampedStart !== value) {
-            value = clampedStart;
-            render();
-          }
-          downX = e.clientX;
-          downValue = value;
-          return;                  // wait for the next event to read delta
-        }
-        if (dragging) {
-          var rect = num.getBoundingClientRect();
-          // Full width drag = one full MinSlider→MaxSlider span (sensitivity
-          // derived from the visible-fill range). The final value still
-          // intersects with Min/Max so SSpinBox can't drag below MinValue=0
-          // even though MinSliderValue=-500 would allow visually.
-          var sensitivity = (maxSlider - minSlider) / rect.width;
-          value = clampDrag(downValue + dx * sensitivity);
-          render();
-        }
-      });
-
-      document.addEventListener('mouseup', function () {
-        if (!armed) return;
-        armed = false;
-        if (dragging) {
-          dragging = false;
-          num.classList.remove('is-dragging');
-        } else {
-          // mouseup without drag → enter edit mode.
-          editing = true;
-          num.classList.add('is-editing');
-          input.focus();
-          input.select();
-        }
-      });
-      } // end !noSpin
-
       function exitEdit(commit) {
-        if (!editing) return;
+        if (!state.editing) return;
         if (commit) {
           var v = parseFloat(input.value);
-          if (!isNaN(v)) value = clampHard(v);
+          if (!isNaN(v)) state.value = clampHard(v);
         }
-        editing = false;
+        state.editing = false;
         num.classList.remove('is-editing');
         render();
+      }
+
+      // Per-element state, kept in module-level WeakMap so the singleton
+      // document mousemove/mouseup handlers below can find it.
+      var state = {
+        value: value,
+        armed: false,
+        dragging: false,
+        editing: false,
+        downX: 0,
+        downValue: 0,
+        minSlider: minSlider,
+        maxSlider: maxSlider,
+        clampDrag: clampDrag,
+        render: render,
+      };
+      if (numericStates) numericStates.set(num, state);
+
+      if (!noSpin) {
+        num.addEventListener('mousedown', function (e) {
+          if (input.disabled) return;     // <input disabled> halts drag/edit-mode
+          if (state.editing) return;      // let native text input handle clicks
+          if (e.button !== 0) return;
+          e.preventDefault();
+          state.downX = e.clientX;
+          state.downValue = state.value;
+          state.armed = true;
+          state.dragging = false;
+          numericArmed = num;             // mark for singleton document handlers
+        });
       }
 
       if (noSpin) {
         // No drag/edit-mode toggle — input is always editable, clamp on
         // blur or Enter via hard limits (MinValue/MaxValue only — drag
         // semantics don't apply).
-        function commitNoSpin() {
+        var commitNoSpin = function () {
           var v = parseFloat(input.value);
-          if (!isNaN(v)) value = clampHard(v);
+          if (!isNaN(v)) state.value = clampHard(v);
           render();
-        }
+        };
         input.addEventListener('blur', commitNoSpin);
         input.addEventListener('keydown', function (e) {
           if (e.key === 'Enter') { commitNoSpin(); input.blur(); }
@@ -542,7 +513,61 @@
         new ResizeObserver(render).observe(num);
       }
       render();
+      num.setAttribute('data-ss-inited', 'numeric');
     });
+
+    // Singleton document listeners — attached on first init only.
+    if (!numericGlobalsInited && numericStates) {
+      document.addEventListener('mousemove', function (e) {
+        if (!numericArmed) return;
+        var s = numericStates.get(numericArmed);
+        if (!s || !s.armed || s.editing) return;
+        var dx = e.clientX - s.downX;
+        if (!s.dragging && Math.abs(dx) >= DRAG_THRESHOLD_PX) {
+          s.dragging = true;
+          numericArmed.classList.add('is-dragging');
+          // If the starting value sits outside the visible-fill range
+          // (text input could have committed 1000 with MaxSliderValue=500),
+          // snap it back to the nearest reachable edge AND re-anchor X to
+          // the current cursor.
+          var clampedStart = s.clampDrag(s.value);
+          if (clampedStart !== s.value) {
+            s.value = clampedStart;
+            s.render();
+          }
+          s.downX = e.clientX;
+          s.downValue = s.value;
+          return;
+        }
+        if (s.dragging) {
+          var rect = numericArmed.getBoundingClientRect();
+          // Full width drag = one full MinSlider→MaxSlider span (sensitivity
+          // derived from the visible-fill range).
+          var sensitivity = (s.maxSlider - s.minSlider) / rect.width;
+          s.value = s.clampDrag(s.downValue + dx * sensitivity);
+          s.render();
+        }
+      });
+
+      document.addEventListener('mouseup', function () {
+        if (!numericArmed) return;
+        var s = numericStates.get(numericArmed);
+        if (!s || !s.armed) { numericArmed = null; return; }
+        s.armed = false;
+        if (s.dragging) {
+          s.dragging = false;
+          numericArmed.classList.remove('is-dragging');
+        } else {
+          // mouseup without drag → enter edit mode.
+          s.editing = true;
+          numericArmed.classList.add('is-editing');
+          var input = numericArmed.querySelector('.ss-numeric__input');
+          if (input) { input.focus(); input.select(); }
+        }
+        numericArmed = null;
+      });
+      numericGlobalsInited = true;
+    }
   }
 
   // ----- Inline editable text wiring ---------------------------------------
@@ -553,7 +578,8 @@
   // activation. Enter or blur commits, Escape reverts to the cached text.
   // aria-disabled="true" disables the gesture.
   function initInlineEditables() {
-    var nodes = document.querySelectorAll('[data-inline-edit]');
+    // Skip elements that already have inline-edit wiring (idempotent).
+    var nodes = document.querySelectorAll('[data-inline-edit]:not([data-ss-inited])');
     Array.prototype.forEach.call(nodes, function (el) {
       // Keep the span keyboard-focusable so F2 / Enter can promote it to
       // edit mode without a mouse. The author can pre-set tabindex; only
@@ -602,6 +628,7 @@
         else if (e.key === 'Escape'){ e.preventDefault(); exitEdit(false); }
       });
       el.addEventListener('blur', function () { exitEdit(true); });
+      el.setAttribute('data-ss-inited', 'inline-edit');
     });
   }
 
@@ -612,9 +639,12 @@
   // that's an authored behaviour. This helper flips aria-pressed between
   // "true" and "false" on every click, mirroring Slate's IsToggled state.
   // Buttons that are disabled (or aria-disabled) are skipped.
+  // Idempotent — re-running ignores buttons that already carry the marker.
   function initToggleButtons() {
     var buttons = document.querySelectorAll(
-      '.ss-btn--toggle, .ss-toolbar__btn--toggle, .ss-toolbar__split-btn--toggle'
+      '.ss-btn--toggle:not([data-ss-inited]),' +
+      '.ss-toolbar__btn--toggle:not([data-ss-inited]),' +
+      '.ss-toolbar__split-btn--toggle:not([data-ss-inited])'
     );
     Array.prototype.forEach.call(buttons, function (btn) {
       // Make sure the attribute exists so the framework's selector resolves
@@ -627,6 +657,7 @@
         var pressed = btn.getAttribute('aria-pressed') === 'true';
         btn.setAttribute('aria-pressed', pressed ? 'false' : 'true');
       });
+      btn.setAttribute('data-ss-inited', 'toggle');
     });
   }
 
@@ -660,7 +691,8 @@
   // creation should append the three elements themselves and re-run
   // `window.starship.initTabs()` to wire fresh close buttons.
   function initTabs() {
-    var closes = document.querySelectorAll('.ss-tab__close');
+    // Idempotent — skip close buttons that already carry the marker.
+    var closes = document.querySelectorAll('.ss-tab__close:not([data-ss-inited])');
     Array.prototype.forEach.call(closes, function (btn) {
       // The close button sits inside a `<label>` whose default click would
       // also toggle the associated radio. We intercept on mousedown to keep
@@ -724,6 +756,7 @@
         if (label.parentNode) label.parentNode.removeChild(label);
         if (panel && panel.parentNode) panel.parentNode.removeChild(panel);
       });
+      btn.setAttribute('data-ss-inited', 'tab-close');
     });
   }
 

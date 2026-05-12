@@ -58,3 +58,23 @@ img, svg, video, canvas {
   outline: 2px solid var(--ss-primary);
   outline-offset: 1px;
 }
+
+// ----- Accessibility: prefers-reduced-motion ----------------------------
+//
+// WCAG 2.3.3 (Animations from Interactions) — users with vestibular /
+// motion-sensitivity disorders can request the OS to suppress non-essential
+// animation. Honour that across the framework:
+//   • marquee `<.ss-progress--marquee>` becomes a static stripe (one frame)
+//   • CheckBox checkmark fade-in becomes instant
+//   • any popover transition fade falls back to instant show/hide
+//
+// `!important` is the only way to override `animation-duration` declared on
+// keyframed rules — author specificity can't reach into them.
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

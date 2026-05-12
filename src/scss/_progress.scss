@@ -40,20 +40,22 @@
 // → bottom-left, stripes perpendicular).
 //
 // Pixel-derived values from UnrealInsights_Widgets.png (user-confirmed):
-//   • light stripe #0E86FF (PrimaryHover) is 9 px on x → 9 / √2 ≈ 6.36 px
-//     on gradient axis
-//   • dark stripe  #0C7DEE — NOT the Primary token (#0070E0). 11 px on x
-//     to fill out the 20 px tile (9 + 11 = 20 = ImageSize.X) → 14.14 px
-//     full period on gradient axis. Lives inline here; not added to the
-//     global palette because nothing else in the framework uses it.
+//   • light stripe — PrimaryHover-adjacent #0E86FF, 9 px on x → 9 / √2 ≈
+//     6.36 px on the gradient axis
+//   • dark stripe  — NOT the Primary token (#0070E0). 11 px on x to fill
+//     out the 20 px tile (9 + 11 = 20 = ImageSize.X) → 14.14 px full
+//     period on the gradient axis.
+// Exposed as `--ss-progress-stripe-{light,dark}` tokens in `_variables.scss`
+// so a consumer who recolors `--ss-primary` can also recolor the marquee
+// without having to fork this partial.
 @mixin ss-progress-stripes {
-  background-color: #0C7DEE;
+  background-color: var(--ss-progress-stripe-dark);
   background-image: repeating-linear-gradient(
     -45deg,
-    #0E86FF  0,
-    #0E86FF  6.36px,
-    #0C7DEE  6.36px,
-    #0C7DEE 14.14px
+    var(--ss-progress-stripe-light)  0,
+    var(--ss-progress-stripe-light)  6.36px,
+    var(--ss-progress-stripe-dark)   6.36px,
+    var(--ss-progress-stripe-dark)  14.14px
   );
 }
 
@@ -136,28 +138,28 @@
 
 // Pixel-derived from UnrealInsights_Widgets_Disabled.png (user-confirmed)
 // against the canonical Panel #242424 parent. These are post-composite
-// hex values, NOT rgba(…, 0.45) overlays:
-//   bg          #1B1B1B (= Foldout × 0.45 over Panel — matches CSS rgba
-//                                   composite too, but hardcoded for parity)
-//   stripe lite #154B82 (post-composite of PrimaryHover × 0.45 over bg)
-//   stripe dark #14477A (post-composite of #0C7DEE × 0.45 over bg)
+// hex values, NOT rgba(…, 0.45) overlays — exposed as tokens in
+// `_variables.scss` for recolor parity:
+//   bg          --ss-progress-disabled-bg            (= Foldout × 0.45 over Panel)
+//   stripe lite --ss-progress-disabled-stripe-light  (PrimaryHover × 0.45 over bg)
+//   stripe dark --ss-progress-disabled-stripe-dark   (dark stripe × 0.45 over bg)
 //
 // Consumers rendering ProgressBar over a non-Panel surface will get
 // slightly off-target disabled hues; revisit with parent-context-aware
 // tinting if that ever matters.
 
 .ss-progress[aria-disabled="true"] {
-  background-color: #1B1B1B;
+  background-color: var(--ss-progress-disabled-bg);
 
   .ss-progress__bar::before,
   &.ss-progress--marquee::after {
-    background-color: #14477A;
+    background-color: var(--ss-progress-disabled-stripe-dark);
     background-image: repeating-linear-gradient(
       -45deg,
-      #154B82  0,
-      #154B82  6.36px,
-      #14477A  6.36px,
-      #14477A 14.14px
+      var(--ss-progress-disabled-stripe-light)  0,
+      var(--ss-progress-disabled-stripe-light)  6.36px,
+      var(--ss-progress-disabled-stripe-dark)   6.36px,
+      var(--ss-progress-disabled-stripe-dark)  14.14px
     );
   }
 }

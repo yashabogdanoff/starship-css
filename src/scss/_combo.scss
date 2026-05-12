@@ -137,12 +137,17 @@
     padding: 2px 8px 0;
   }
 
-  // The native :focus outline would compete with the border swap. Slate
-  // doesn't draw a focus ring on combo triggers — kill the browser default.
+  // Keyboard focus must be visually distinct from `:hover` (WCAG 2.4.7) —
+  // mouse-hover and keyboard-focus paint identically in UE Slate, which is
+  // safe in a desktop editor but breaks on the web where the only signal
+  // for "where am I?" is the focus indicator. We paint the border with
+  // Primary (instead of the Hover gray) AND add a 1 px Primary outline so
+  // tab-juzers can tell focus from hover at a glance.
   &:focus-visible {
-    outline: none;
-    border-color: var(--ss-hover);
+    border-color: var(--ss-primary);
     color: var(--ss-foreground-hover);
+    outline: 1px solid var(--ss-primary);
+    outline-offset: 1px;
   }
 
   // Disabled — Slate's ComboButton SetDisabled brush is
@@ -223,11 +228,19 @@
   background: transparent;
   border: none;
 
-  &:hover,
-  &:focus-visible {
+  &:hover {
     background: var(--ss-dropdown);    // SimpleButton hovered/pressed brush
     color: var(--ss-foreground-hover);
-    outline: none;
+  }
+
+  // Keyboard focus is visually distinguishable from hover — hover fills
+  // the bg, focus adds an outline ring (same background as hover so the
+  // press intent reads, but with Primary outline as a keyboard signal).
+  &:focus-visible {
+    background: var(--ss-dropdown);
+    color: var(--ss-foreground-hover);
+    outline: 1px solid var(--ss-primary);
+    outline-offset: 1px;
   }
 
   // No `.is-open` rule — cursor leaving the trigger onto the menu must

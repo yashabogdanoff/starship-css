@@ -242,7 +242,7 @@
 // the Nth `.ss-tab-panel`. Selectors below cover both Major (default) and
 // Minor variants in the same nth-of-type loop.
 
-@for $i from 1 through 16 {
+@for $i from 1 through 32 {
   // Active tab background — applies to both Major and Minor.
   .ss-tabs > .ss-tabs__input:nth-of-type(#{$i}):checked
             ~ .ss-tab-well > .ss-tab:nth-of-type(#{$i}) {
@@ -348,7 +348,7 @@
 // "hover-bright" white) rather than the Major's `--ss-white`. Same hex in the
 // default palette, but matches the source-of-truth intent if a consumer
 // overrides --ss-foreground-hover.
-@for $i from 1 through 16 {
+@for $i from 1 through 32 {
   .ss-tabs > .ss-tabs__input:nth-of-type(#{$i}):checked
             ~ .ss-tab-well > .ss-tab--minor:nth-of-type(#{$i}) {
     color: var(--ss-foreground-hover);
