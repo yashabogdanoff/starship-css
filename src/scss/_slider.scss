@@ -112,17 +112,17 @@
     cursor: not-allowed;
   }
   &:disabled::-webkit-slider-runnable-track {
-    background: rgba(15, 15, 15, 0.45);    // Input × 0.45
-    border-color: rgba(26, 26, 26, 0.45);  // Recessed × 0.45
+    background: color-mix(in srgb, var(--ss-input) 45%, transparent);    // Input × 0.45
+    border-color: color-mix(in srgb, var(--ss-recessed) 45%, transparent);  // Recessed × 0.45
   }
   &:disabled::-webkit-slider-thumb {
-    background: rgba(192, 192, 192, 0.45); // Foreground × 0.45
+    background: color-mix(in srgb, var(--ss-foreground) 45%, transparent); // Foreground × 0.45
   }
   &:disabled::-moz-range-track {
-    background: rgba(15, 15, 15, 0.45);
-    border-color: rgba(26, 26, 26, 0.45);
+    background: color-mix(in srgb, var(--ss-input) 45%, transparent);
+    border-color: color-mix(in srgb, var(--ss-recessed) 45%, transparent);
   }
   &:disabled::-moz-range-thumb {
-    background: rgba(192, 192, 192, 0.45);
+    background: color-mix(in srgb, var(--ss-foreground) 45%, transparent);
   }
 }

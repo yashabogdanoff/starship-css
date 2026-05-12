@@ -244,11 +244,11 @@
 
 .ss-numeric:has(.ss-numeric__input:disabled) {
   cursor: not-allowed;
-  background: rgba(15, 15, 15, 0.45);     // Input × 0.45
-  border-color: rgba(56, 56, 56, 0.45);   // InputOutline × 0.45
-  color: rgba(255, 255, 255, 0.45);       // ForegroundHover × 0.45
+  background: color-mix(in srgb, var(--ss-input) 45%, transparent);     // Input × 0.45
+  border-color: color-mix(in srgb, var(--ss-input-outline) 45%, transparent);   // InputOutline × 0.45
+  color: color-mix(in srgb, var(--ss-foreground-hover) 45%, transparent);       // ForegroundHover × 0.45
 }
 
 .ss-numeric:has(.ss-numeric__input:disabled) .ss-numeric__fill {
-  background: rgba(56, 56, 56, 0.45);     // Dropdown × 0.45 (InactiveFill)
+  background: color-mix(in srgb, var(--ss-dropdown) 45%, transparent);     // Dropdown × 0.45 (InactiveFill)
 }

@@ -74,15 +74,15 @@
   // composite math matches StarshipCoreStyle.cpp's per-brush draw order.
   // See PROJECT_NOTES.md §16 "Disabled tint formula".
   &:disabled {
-    background-color: rgba(15, 15, 15, 0.45);        // Input  × 0.45
-    border-color:     rgba(56, 56, 56, 0.45);        // InputOutline × 0.45
-    color:            rgba(192, 192, 192, 0.45);     // Foreground × 0.45
+    background-color: color-mix(in srgb, var(--ss-input) 45%, transparent);        // Input  × 0.45
+    border-color:     color-mix(in srgb, var(--ss-input-outline) 45%, transparent);        // InputOutline × 0.45
+    color:            color-mix(in srgb, var(--ss-foreground) 45%, transparent);     // Foreground × 0.45
     cursor: not-allowed;
 
     &::placeholder {
       // base ::placeholder opacity 0.35 cascades — compound alpha ≈ 0.158
       // (matches UE disabled hint over Panel).
-      color: rgba(192, 192, 192, 0.45);
+      color: color-mix(in srgb, var(--ss-foreground) 45%, transparent);
     }
   }
 
@@ -146,11 +146,11 @@
   }
   &:disabled {
     background-color: transparent;
-    color: rgba(192, 192, 192, 0.45);
+    color: color-mix(in srgb, var(--ss-foreground) 45%, transparent);
     cursor: not-allowed;
 
     &::placeholder {
-      color: rgba(192, 192, 192, 0.45);
+      color: color-mix(in srgb, var(--ss-foreground) 45%, transparent);
     }
   }
 }
@@ -222,7 +222,7 @@
   text-overflow: ellipsis;
 
   &[aria-disabled="true"] {
-    color: rgba(192, 192, 192, 0.45);
+    color: color-mix(in srgb, var(--ss-foreground) 45%, transparent);
     cursor: default;
   }
 
@@ -323,7 +323,7 @@
   // .ss-input itself; sync the glass icon's tint so it doesn't sit at full
   // alpha next to a dimmed input.
   &:has(.ss-input:disabled) &__icon {
-    color: rgba(192, 192, 192, 0.45);
+    color: color-mix(in srgb, var(--ss-foreground) 45%, transparent);
   }
 }
 

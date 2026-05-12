@@ -154,7 +154,7 @@
   min-width: 0;
 
   &:hover {
-    background: rgba(36, 36, 36, 0.8);   // Panel α 0.8 (Hovered)
+    background: color-mix(in srgb, var(--ss-panel) 80%, transparent);   // Panel α 0.8 (Hovered)
     color: var(--ss-foreground-hover);
   }
 }

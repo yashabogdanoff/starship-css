@@ -388,14 +388,14 @@
 .ss-toolbar__split-btn[aria-disabled="true"],
 .ss-toolbar__split-options:disabled,
 .ss-toolbar__split-options[aria-disabled="true"] {
-  color: rgba(192, 192, 192, 0.45);
+  color: color-mix(in srgb, var(--ss-foreground) 45%, transparent);
   cursor: not-allowed;
   background: transparent;
   box-shadow: none;
 
   &:hover {
     background: transparent;
-    color: rgba(192, 192, 192, 0.45);
+    color: color-mix(in srgb, var(--ss-foreground) 45%, transparent);
     box-shadow: none;
   }
 }
@@ -407,12 +407,12 @@
 .ss-toolbar__btn--toggle[aria-pressed="true"][aria-disabled="true"],
 .ss-toolbar__split-btn--toggle[aria-pressed="true"]:disabled,
 .ss-toolbar__split-btn--toggle[aria-pressed="true"][aria-disabled="true"] {
-  background: rgba(0, 112, 224, 0.45);
-  color: rgba(255, 255, 255, 0.45);
+  background: color-mix(in srgb, var(--ss-primary) 45%, transparent);
+  color: color-mix(in srgb, var(--ss-foreground-hover) 45%, transparent);
 
   &:hover {
-    background: rgba(0, 112, 224, 0.45);
-    color: rgba(255, 255, 255, 0.45);
+    background: color-mix(in srgb, var(--ss-primary) 45%, transparent);
+    color: color-mix(in srgb, var(--ss-foreground-hover) 45%, transparent);
   }
 }
 

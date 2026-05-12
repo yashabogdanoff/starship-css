@@ -158,9 +158,9 @@
   &[aria-disabled="true"] {
     cursor: not-allowed;
     pointer-events: none;
-    background: rgba(56, 56, 56, 0.45);   // Dropdown × 0.45
-    border-color: rgba(76, 76, 76, 0.45); // DropdownOutline × 0.45
-    color: rgba(255, 255, 255, 0.45);     // ForegroundHover × 0.45
+    background: color-mix(in srgb, var(--ss-dropdown) 45%, transparent);   // Dropdown × 0.45
+    border-color: color-mix(in srgb, var(--ss-dropdown-outline) 45%, transparent); // DropdownOutline × 0.45
+    color: color-mix(in srgb, var(--ss-foreground-hover) 45%, transparent);     // ForegroundHover × 0.45
     padding: 1px 8px;                     // lock to Normal padding (no press-shift)
   }
 }
@@ -258,7 +258,7 @@
   &[aria-disabled="true"] {
     background: transparent;
     border: none;
-    color: rgba(192, 192, 192, 0.45);     // Foreground × 0.45
+    color: color-mix(in srgb, var(--ss-foreground) 45%, transparent);     // Foreground × 0.45
     padding: 1px 2px;                     // lock to Normal padding
   }
 }

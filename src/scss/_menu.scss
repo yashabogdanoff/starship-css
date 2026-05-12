@@ -107,7 +107,7 @@
 
   &:disabled,
   &[aria-disabled="true"] {
-    color: rgba(192, 192, 192, 0.45);
+    color: color-mix(in srgb, var(--ss-foreground) 45%, transparent);
     cursor: not-allowed;
 
     &:hover { background: transparent; }
@@ -227,10 +227,10 @@
   }
 
   &[aria-disabled="true"] {
-    color: rgba(192, 192, 192, 0.45);
+    color: color-mix(in srgb, var(--ss-foreground) 45%, transparent);
     cursor: default;
 
-    &:hover { background: transparent; color: rgba(192, 192, 192, 0.45); }
+    &:hover { background: transparent; color: color-mix(in srgb, var(--ss-foreground) 45%, transparent); }
   }
 }
 

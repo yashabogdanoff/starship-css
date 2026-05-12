@@ -112,7 +112,7 @@
     // (bg/outline keep their SetDisabled brush colours at full strength).
     // Pixel-sampled UE Disabled "Label" peak R = 117 ≈ Foreground #C0C0C0
     // at alpha 0.45 over Dropdown #383838.
-    color: rgba(192, 192, 192, 0.45);
+    color: color-mix(in srgb, var(--ss-foreground) 45%, transparent);
     cursor: not-allowed;
     pointer-events: none;
   }
@@ -200,7 +200,7 @@
     background: transparent;
     border: none;
     // Same disabled tint as Primary/Default — Foreground at 0.45 alpha.
-    color: rgba(192, 192, 192, 0.45);
+    color: color-mix(in srgb, var(--ss-foreground) 45%, transparent);
   }
 }
 
@@ -245,7 +245,7 @@
   &[aria-disabled="true"] {
     background: transparent;
     border: none;
-    color: rgba(192, 192, 192, 0.45);
+    color: color-mix(in srgb, var(--ss-foreground) 45%, transparent);
 
     &[aria-pressed="true"] {
       // Pressed-on disabled: keep Primary fill, fade with opacity so both

@@ -127,11 +127,11 @@ $ss-svg-indeterminate: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/20
   //   Panel + Input α0.45 + Primary α0.45 mark on Input box
   &:disabled {
     cursor: not-allowed;
-    background: rgba(15, 15, 15, 0.45);    // Input × 0.45 → composites to #1B
-    border-color: rgba(56, 56, 56, 0.45);  // InputOutline × 0.45 → ~ #2A
+    background: color-mix(in srgb, var(--ss-input) 45%, transparent);    // Input × 0.45 → composites to #1B
+    border-color: color-mix(in srgb, var(--ss-input-outline) 45%, transparent);  // InputOutline × 0.45 → ~ #2A
   }
   &:disabled::after {
-    background-color: rgba(0, 112, 224, 0.45);  // Primary × 0.45 mark
+    background-color: color-mix(in srgb, var(--ss-primary) 45%, transparent);  // Primary × 0.45 mark
   }
 }
 
@@ -199,10 +199,10 @@ $ss-svg-indeterminate: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/20
 
   &:disabled {
     cursor: not-allowed;
-    border-color: rgba(56, 56, 56, 0.45);   // Dropdown × 0.45
+    border-color: color-mix(in srgb, var(--ss-dropdown) 45%, transparent);   // Dropdown × 0.45
   }
-  &:disabled:checked        { border-color: rgba(0, 112, 224, 0.45); }
-  &:disabled:checked::after { background-color: rgba(0, 112, 224, 0.45); }
+  &:disabled:checked        { border-color: color-mix(in srgb, var(--ss-primary) 45%, transparent); }
+  &:disabled:checked::after { background-color: color-mix(in srgb, var(--ss-primary) 45%, transparent); }
 }
 
 // ----- Row helper -----------------------------------------------------------

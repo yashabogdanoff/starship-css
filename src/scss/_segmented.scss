@@ -135,7 +135,7 @@
   //   Foreground      #C0C0C0 α0.45 (unchecked text) → peak R 119 on #1B1B1B
 
   > input[type="radio"]:disabled + .ss-segmented__option {
-    color: rgba(192, 192, 192, .45);
+    color: color-mix(in srgb, var(--ss-foreground) 45%, transparent);
     cursor: not-allowed;
   }
 
@@ -144,17 +144,17 @@
   &[aria-disabled="true"],
   &:has(> input[type="radio"]:disabled) {
     pointer-events: none;
-    background: rgba(15, 15, 15, 0.45);   // Input × 0.45 → composes #1B1B1B
+    background: color-mix(in srgb, var(--ss-input) 45%, transparent);   // Input × 0.45 → composes #1B1B1B
 
     .ss-segmented__option {
-      color: rgba(192, 192, 192, .45);    // Foreground × 0.45
+      color: color-mix(in srgb, var(--ss-foreground) 45%, transparent);    // Foreground × 0.45
       cursor: not-allowed;
       background: transparent;
     }
 
     > input[type="radio"]:checked + .ss-segmented__option {
-      background: rgba(56, 56, 56, 0.45); // Dropdown × 0.45 → composes #282828
-      color: rgba(255, 255, 255, .45);    // ForegroundHover × 0.45
+      background: color-mix(in srgb, var(--ss-dropdown) 45%, transparent); // Dropdown × 0.45 → composes #282828
+      color: color-mix(in srgb, var(--ss-foreground-hover) 45%, transparent);    // ForegroundHover × 0.45
     }
   }
 }
