@@ -1155,10 +1155,14 @@ img, svg, video, canvas {
   background: var(--ss-primary);
   color: var(--ss-white);
 }
-.ss-combo__option[aria-selected=true]:not(:hover) {
+.ss-combo__option[aria-selected=true] {
   outline: 1px solid var(--ss-select);
   outline-offset: -4px;
   border-radius: var(--ss-radius);
+}
+.ss-combo__option[aria-selected=true]:hover {
+  outline: none;
+  border-radius: 0;
 }
 
 .ss-combo--simple .ss-combo__option {

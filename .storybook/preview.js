@@ -16,6 +16,7 @@ const preview = {
       storySort: {
         order: [
           "Welcome",
+          "Gallery",
           "Foundations",
           "Buttons",
           "Inputs",

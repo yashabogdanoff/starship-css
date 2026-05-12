@@ -316,11 +316,19 @@
 
   // SelectorFocusedBrush — thin Select-coloured ring inset 3 px from each
   // popover side, radius 4. Replicate via outline (no layout impact).
-  // Skip on hover — full Primary fill takes over.
-  &[aria-selected="true"]:not(:hover) {
+  &[aria-selected="true"] {
     outline: 1px solid var(--ss-select);
     outline-offset: -4px;
     border-radius: var(--ss-radius);
+  }
+  // Hover takes over: full Primary fill replaces the inset selection ring.
+  // Written as an explicit override (not `:not(:hover)` on the rule above)
+  // because `storybook-addon-pseudo-states` rewrites `:not(:hover)` as a
+  // comma-separated list — OR-logic instead of AND — and the rule then
+  // keeps applying during real hover. Override is bullet-proof.
+  &[aria-selected="true"]:hover {
+    outline: none;
+    border-radius: 0;
   }
 }
 

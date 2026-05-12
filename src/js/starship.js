@@ -354,16 +354,27 @@
             menu.hidePopover();
           });
         } else if (role === 'menu') {
-          // Menu behaviour — regular-entry hover closes sibling submenus
-          // (so the submenu doesn't linger after the cursor leaves its
-          // trigger), regular-entry click closes the entire menu stack.
+          // Menu behaviour — regular-entry click closes the entire menu stack.
+          //
+          // We do NOT close sibling submenus on regular-entry hover. That
+          // was the previous behaviour, but it made cascades unusable: as
+          // soon as the cursor left the submenu trigger it would pass over
+          // a sibling regular entry (e.g. "Save" below "Recent") and the
+          // submenu would shut before the cursor could reach its entries.
+          //
+          // Submenus now close only on:
+          //   * Click on a regular entry anywhere in the cascade.
+          //   * Hover on a *different* submenu trigger of the same parent
+          //     (handled in the submenu-trigger mouseenter branch above —
+          //     `closeSiblingSubmenus(parentMenu, trigger)`).
+          //   * Escape.
+          //   * Click outside the popover stack.
+          //   * Parent menu closing for any reason (cascade-close in the
+          //     `toggle` listener below).
           var regulars = menu.querySelectorAll(
             '.ss-menu__entry:not([data-popover-target])'
           );
           Array.prototype.forEach.call(regulars, function (entry) {
-            entry.addEventListener('mouseenter', function () {
-              closeSiblingSubmenus(menu, null);
-            });
             entry.addEventListener('click', function () {
               var current = menu;
               while (current && current.matches && current.matches(':popover-open')) {
