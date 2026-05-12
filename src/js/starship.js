@@ -60,10 +60,19 @@
  * the combo trigger, cascades submenus, manages menubar activation mode,
  * and locks parent-menu search while a submenu is open.
  *
- * Anchor-name / position-anchor for CSS Anchor Positioning are assigned
- * programmatically from the `data-popover-target` value — no inline
- * `style="anchor-name: ..."` required in HTML (CSP `style-src 'self'`
- * compatible).
+ * Anchor for CSS Anchor Positioning is wired by injecting `anchor-name` and
+ * `position-anchor` rules into a constructed `CSSStyleSheet` attached to
+ * `document.adoptedStyleSheets`. Constructed stylesheets are NOT considered
+ * "inline styles" by CSP, so the framework works under a strict
+ * `Content-Security-Policy: style-src 'self'` (no `unsafe-inline`) on
+ * browsers that support CSS Anchor Positioning.
+ *
+ * On browsers without that support (Firefox / Safari as of 2026-05) a JS
+ * positioner sets `top` / `left` on the popover after each `showPopover()`
+ * (see `placePopover` below). Those `style.top` / `style.left` writes are
+ * inline-style mutations and would be blocked by `style-src 'self'`
+ * without `unsafe-inline` — that's an unavoidable trade-off until the
+ * fallback browsers ship native anchor positioning.
  *
  * init* functions are idempotent: re-running them after dynamically adding
  * markup wires only the new elements. Per-element guard via
@@ -125,6 +134,87 @@
   var barStates = (typeof WeakMap === 'function') ? new WeakMap() : null;
   var popoverGlobalsInited = false;
 
+  // Feature-detect CSS Anchor Positioning. Chromium 125+ supports it
+  // natively (the popover renders at `top: anchor(bottom); left: anchor(left)`
+  // against its anchor element). Firefox / Safari (as of 2026-05) do not,
+  // so an open popover with no native anchor support would land at the
+  // viewport's top-left corner. `placePopover` below positions it manually
+  // via `getBoundingClientRect()` on those browsers.
+  var anchorSupported = (typeof CSS !== 'undefined' &&
+                         typeof CSS.supports === 'function' &&
+                         CSS.supports('anchor-name', '--x'));
+
+  // Constructed stylesheet for per-pair `anchor-name` / `position-anchor`
+  // rules. CSSStyleSheet (constructable) + adoptedStyleSheets is CSP-safe
+  // — these are not "inline styles" so `style-src 'self'` doesn't block.
+  // Falls back to `<style>` element when the constructor is unavailable
+  // (Safari < 16.4); that fallback IS blocked by strict CSP, but Safari
+  // also lacks anchor positioning anyway and falls through to placePopover.
+  var anchorSheet = null;
+  function getAnchorSheet() {
+    if (anchorSheet) return anchorSheet;
+    try {
+      anchorSheet = new CSSStyleSheet();
+      document.adoptedStyleSheets =
+        document.adoptedStyleSheets.concat([anchorSheet]);
+    } catch (_) {
+      var el = document.createElement('style');
+      el.setAttribute('data-ss-anchor', '');
+      document.head.appendChild(el);
+      anchorSheet = el.sheet;
+    }
+    return anchorSheet;
+  }
+  function wireAnchorPair(triggerEl, popoverEl, targetId) {
+    if (!anchorSupported) return;
+    var name = '--ss-anchor-' + targetId;
+    var sheet = getAnchorSheet();
+    try {
+      sheet.insertRule(
+        '[data-popover-target="' + targetId + '"] { anchor-name: ' + name + '; }',
+        sheet.cssRules.length
+      );
+      sheet.insertRule(
+        '#' + CSS.escape(targetId) + ' { position-anchor: ' + name + '; }',
+        sheet.cssRules.length
+      );
+    } catch (_) {
+      // Selector escape failed or insertRule rejected — silent fallback
+      // means the popover will fall through to placePopover at open time.
+    }
+  }
+
+  // Position a popover relative to its trigger when the browser lacks
+  // CSS Anchor Positioning. Mirrors the `_popover.scss` / `_menu.scss`
+  // CSS rules: default popovers open `bottom-start` of their trigger;
+  // submenus open `right-start` (i.e. to the right, top-aligned).
+  // Top-layer popovers are positioned in viewport coords, so `getBounding`
+  // values map 1:1 to `style.top` / `style.left` (no scrollY offset).
+  function placePopover(trigger, menu) {
+    if (anchorSupported) return;
+    var r = trigger.getBoundingClientRect();
+    // Submenu = the trigger lives inside an `.ss-menu` (not a `.ss-menubar`).
+    var isSubmenu = !!(trigger.closest && trigger.closest('.ss-menu'));
+    if (isSubmenu) {
+      menu.style.top  = r.top  + 'px';
+      menu.style.left = r.right + 'px';
+    } else {
+      menu.style.top  = r.bottom + 'px';
+      menu.style.left = r.left   + 'px';
+    }
+  }
+
+  // While popovers are open and the browser is in fallback mode, scroll or
+  // resize moves the anchor — re-place every open popover. Cheap when nothing
+  // is open (early-return after the support gate + matches check).
+  function repositionOpenPopovers() {
+    if (anchorSupported) return;
+    for (var i = 0; i < pairs.length; i++) {
+      var p = pairs[i];
+      if (p.menu.matches(':popover-open')) placePopover(p.trigger, p.menu);
+    }
+  }
+
   function getBarState(bar) {
     if (!barStates) return { activated: false };
     var s = barStates.get(bar);
@@ -167,13 +257,12 @@
 
       pairs.push({ trigger: trigger, menu: menu });
 
-      // CSS Anchor Positioning binding — assigned in JS so HTML doesn't need
-      // inline `style="anchor-name: ..."` / `position-anchor: ...` (which
-      // would break CSP `style-src 'self'`). The name is derived from
-      // `data-popover-target` so each trigger / popover pair is unique.
-      var anchorName = '--' + targetId;
-      trigger.style.setProperty('anchor-name', anchorName);
-      menu.style.setProperty('position-anchor', anchorName);
+      // Bind anchor-name / position-anchor via a constructed stylesheet.
+      // Selectors are `[data-popover-target="<id>"]` (trigger) and
+      // `#<id>` (popover), so each pair is uniquely scoped without any
+      // inline-style writes — CSP-clean on every browser that supports
+      // anchor positioning. See `wireAnchorPair` above for the fallback path.
+      wireAnchorPair(trigger, menu, targetId);
 
       var bar = trigger.closest && trigger.closest('.ss-menubar');
       var inParentMenu = !bar && trigger.closest && trigger.closest('.ss-menu');
@@ -193,6 +282,7 @@
           } else {
             closeAllExcept(menu);
             menu.showPopover();
+            placePopover(trigger, menu);
             s.activated = true;
           }
         } else if (inParentMenu) {
@@ -203,6 +293,7 @@
           else {
             closeSiblingSubmenus(inParentMenu, trigger);
             menu.showPopover();
+            placePopover(trigger, menu);
           }
         } else {
           // Standalone trigger (combo / toolbar combo / split-options).
@@ -213,6 +304,7 @@
           } else {
             closeAllExcept(menu);
             menu.showPopover();
+            placePopover(trigger, menu);
           }
         }
       });
@@ -231,12 +323,14 @@
           if (menu.matches(':popover-open')) return;
           closeAllExcept(menu);
           menu.showPopover();
+          placePopover(trigger, menu);
         });
       } else if (inParentMenu) {
         trigger.addEventListener('mouseenter', function () {
           if (menu.matches(':popover-open')) return;
           closeSiblingSubmenus(inParentMenu, trigger);
           menu.showPopover();
+          placePopover(trigger, menu);
         });
       }
 
@@ -367,6 +461,13 @@
           if (p.menu.matches(':popover-open')) p.menu.hidePopover();
         });
       });
+      // Anchor-fallback mode only: re-position open popovers when the page
+      // or any scroll container moves, or when the viewport resizes. No-op
+      // when the browser supports CSS Anchor Positioning natively.
+      if (!anchorSupported) {
+        window.addEventListener('scroll', repositionOpenPopovers, true);
+        window.addEventListener('resize', repositionOpenPopovers);
+      }
       popoverGlobalsInited = true;
     }
   }
@@ -516,8 +617,14 @@
       // switches to the tab that contains it and clientWidth flips from 0
       // to its real px (initNumerics runs at DOMContentLoaded, before any
       // visibility flip in our CSS-tab page).
+      // Self-disconnects when the observed element leaves the DOM, so
+      // single-page apps that mount/unmount numerics don't leak observers.
       if (typeof ResizeObserver === 'function') {
-        new ResizeObserver(render).observe(num);
+        var ro = new ResizeObserver(function () {
+          if (!num.isConnected) { ro.disconnect(); return; }
+          render();
+        });
+        ro.observe(num);
       }
       render();
       num.setAttribute('data-ss-inited', 'numeric');
