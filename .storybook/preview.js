@@ -9,6 +9,23 @@ const preview = {
     // (grids and full-width composites can't be centered without distorting
     // their layout).
     layout: "centered",
+    options: {
+      // Welcome first; then walk the groups in the same order as the file-ownership
+      // table in CLAUDE.md (Foundations → Buttons → Inputs → Selectors → Containers
+      // → Feedback). Anything not listed sorts alphabetically after.
+      storySort: {
+        order: [
+          "Welcome",
+          "Foundations",
+          "Buttons",
+          "Inputs",
+          "Selectors",
+          "Containers",
+          "Feedback",
+          "*",
+        ],
+      },
+    },
   },
   decorators: [
     (story) => {

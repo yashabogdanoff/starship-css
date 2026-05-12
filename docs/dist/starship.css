@@ -484,6 +484,20 @@ img, svg, video, canvas {
   background: transparent;
   color: var(--ss-foreground);
 }
+.ss-btn--toggle > .ss-toggle__input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+  padding: 0;
+  margin: -1px;
+}
+.ss-btn--toggle:focus-within {
+  outline: none;
+  box-shadow: 0 0 0 1px var(--ss-primary);
+}
 .ss-btn--toggle:hover {
   background: var(--ss-dropdown);
   color: var(--ss-foreground-hover);
@@ -491,22 +505,23 @@ img, svg, video, canvas {
 .ss-btn--toggle:active {
   padding: 3px 16px 1px;
 }
-.ss-btn--toggle[aria-pressed=true] {
+.ss-btn--toggle[aria-pressed=true], .ss-btn--toggle:has(> .ss-toggle__input:checked) {
   background: var(--ss-primary);
   color: var(--ss-foreground-hover);
 }
-.ss-btn--toggle[aria-pressed=true]:hover {
+.ss-btn--toggle[aria-pressed=true]:hover, .ss-btn--toggle:has(> .ss-toggle__input:checked):hover {
   background: var(--ss-primary-hover);
 }
-.ss-btn--toggle[aria-pressed=true]:active {
+.ss-btn--toggle[aria-pressed=true]:active, .ss-btn--toggle:has(> .ss-toggle__input:checked):active {
   background: var(--ss-dropdown);
 }
-.ss-btn--toggle:disabled, .ss-btn--toggle[aria-disabled=true] {
+.ss-btn--toggle:disabled, .ss-btn--toggle[aria-disabled=true], .ss-btn--toggle:has(> .ss-toggle__input:disabled) {
   background: transparent;
   border: none;
   color: color-mix(in srgb, var(--ss-foreground) 45%, transparent);
+  cursor: not-allowed;
 }
-.ss-btn--toggle:disabled[aria-pressed=true], .ss-btn--toggle[aria-disabled=true][aria-pressed=true] {
+.ss-btn--toggle:disabled[aria-pressed=true], .ss-btn--toggle:disabled:has(> .ss-toggle__input:checked), .ss-btn--toggle[aria-disabled=true][aria-pressed=true], .ss-btn--toggle[aria-disabled=true]:has(> .ss-toggle__input:checked), .ss-btn--toggle:has(> .ss-toggle__input:disabled)[aria-pressed=true], .ss-btn--toggle:has(> .ss-toggle__input:disabled):has(> .ss-toggle__input:checked) {
   background: var(--ss-primary);
   color: var(--ss-foreground-hover);
   opacity: 0.45;

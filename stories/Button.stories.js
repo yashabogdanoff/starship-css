@@ -43,16 +43,31 @@ const meta = {
     if (iconOnly) cls.push("ss-btn--icon-only");
     if (toggle) cls.push("ss-btn--toggle");
 
-    const attrs = [];
-    if (disabled) attrs.push("disabled");
-    if (toggle) attrs.push(`aria-pressed="${pressed ? "true" : "false"}"`);
-    if (iconOnly) attrs.push(`aria-label="${label}"`);
-
     const icon = (withIcon || iconOnly)
       ? `<span class="ss-btn__icon">${BOX_ICON}</span>`
       : "";
     const text = iconOnly ? "" : label;
 
+    // Toggle uses CSS-only markup: <label> wraps a hidden <input type="checkbox">.
+    // No JS needed — clicking the label toggles the input natively,
+    // `:has(input:checked)` paints the pressed look.
+    if (toggle) {
+      const inputAttrs = [
+        `type="checkbox"`,
+        `class="ss-toggle__input"`,
+        pressed ? "checked" : "",
+        disabled ? "disabled" : "",
+      ].filter(Boolean).join(" ");
+      return `<label class="${cls.join(" ")}" ${iconOnly ? `aria-label="${label}"` : ""}>
+        <input ${inputAttrs}>
+        ${icon}${text}
+      </label>`;
+    }
+
+    // Non-toggle: regular <button>.
+    const attrs = [];
+    if (disabled) attrs.push("disabled");
+    if (iconOnly) attrs.push(`aria-label="${label}"`);
     return `<button class="${cls.join(" ")}" ${attrs.join(" ")}>${icon}${text}</button>`;
   },
 };
@@ -115,6 +130,20 @@ export const Toggle = {
 
 export const TogglePressed = {
   args: { label: "Label", toggle: true, pressed: true },
+};
+
+// Legacy `<button aria-pressed>` toggle — still supported by the CSS but
+// requires `Starship.initToggleButtons()` to flip `aria-pressed` on click.
+// Prefer the `<label>` + hidden `<input type="checkbox">` markup above
+// (CSS-only, no JS dependency).
+export const ToggleLegacyAriaPressed = {
+  parameters: { docs: { description: { story: "Legacy markup requiring starship.js initToggleButtons() — kept for backward compat." } } },
+  render: () => `
+    <div style="display: inline-flex; gap: 12px;">
+      <button class="ss-btn ss-btn--toggle" aria-pressed="false">Off</button>
+      <button class="ss-btn ss-btn--toggle" aria-pressed="true">On</button>
+    </div>
+  `,
 };
 
 export const Disabled = {
@@ -186,8 +215,8 @@ export const Matrix = {
       <div><button class="ss-btn ss-btn--simple ss-btn--icon-only" aria-label="Box"><span class="ss-btn__icon">${BOX_ICON}</span></button></div>
 
       <div>Toggle</div>
-      <div><button class="ss-btn ss-btn--toggle" aria-pressed="false">Off</button></div>
-      <div><button class="ss-btn ss-btn--toggle" aria-pressed="true">On</button></div>
+      <div><label class="ss-btn ss-btn--toggle"><input type="checkbox" class="ss-toggle__input">Off</label></div>
+      <div><label class="ss-btn ss-btn--toggle"><input type="checkbox" class="ss-toggle__input" checked>On</label></div>
       <div></div>
     </div>
   `,
